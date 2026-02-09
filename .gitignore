@@ -1,0 +1,43 @@
+# .NET
+bin/
+obj/
+.vs/
+*.user
+*.suo
+[Dd]ebug/
+[Rr]elease/
+*.cache
+*.log
+appsettings.Development.json
+
+# ASP.NET Core
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+
+# Node / React / Vite
+node_modules/
+dist/
+*.tsbuildinfo
+*.log
+
+# Env files
+.env
+.env.*
+.env.local
+!.env.example
+
+# Editor / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Git
+.github/

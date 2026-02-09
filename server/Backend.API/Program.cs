@@ -1,0 +1,38 @@
+using CommonLayer.Models;
+using Microsoft.Extensions.Options;
+using MongoDB.Driver;
+
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+
+builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("MongoSettings"));
+
+builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
+{
+    var settings = serviceProvider.GetRequiredService<IOptions<MongoSettings>>().Value;
+    if (string.IsNullOrWhiteSpace(settings.ConnectionString))
+    {
+        throw new InvalidOperationException("MongoSettings:ConnectionString is missing.");
+    }
+
+    return new MongoClient(settings.ConnectionString);
+});
+
+builder.Services.AddSingleton<BusinessLayer.Mongo.IMongoConnectionTester, BusinessLayer.Mongo.MongoConnectionTester>();
+
+var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+
+app.MapControllers();
+
+app.Run();
