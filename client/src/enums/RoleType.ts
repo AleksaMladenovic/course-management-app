@@ -5,3 +5,4 @@ const RoleType = {
 } as const;
 
 export type RoleType = typeof RoleType[keyof typeof RoleType];
+export default RoleType;
