@@ -24,9 +24,6 @@ namespace DatabaseLayer.Repositories
 
             var database = mongoClient.GetDatabase(databaseName);
             _collection = database.GetCollection<Author>("authors");
-            _collection.Indexes.CreateOne(new CreateIndexModel<Author>(
-                Builders<Author>.IndexKeys.Ascending(a => a.FirebaseUid),
-                new CreateIndexOptions { Unique = true }));
         }
 
         public Task<List<Author>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -35,13 +32,13 @@ namespace DatabaseLayer.Repositories
         public async Task<Author?> GetByIdAsync(string firebaseUid, CancellationToken cancellationToken = default)
             => await _collection.Find(author => author.FirebaseUid == firebaseUid).FirstOrDefaultAsync(cancellationToken);
 
-        public Task CreateAsync(Author author, CancellationToken cancellationToken = default)
-            => _collection.InsertOneAsync(author, cancellationToken: cancellationToken);
+        public async Task CreateAsync(Author author, CancellationToken cancellationToken = default)
+            => await _collection.InsertOneAsync(author, cancellationToken: cancellationToken);
 
-        public Task UpdateAsync(string firebaseUid, Author author, CancellationToken cancellationToken = default)
-            => _collection.ReplaceOneAsync(a => a.FirebaseUid == firebaseUid, author, cancellationToken: cancellationToken);
+        public async Task UpdateAsync(string firebaseUid, Author author, CancellationToken cancellationToken = default)
+            => await _collection.ReplaceOneAsync(a => a.FirebaseUid == firebaseUid, author, cancellationToken: cancellationToken);
 
-        public Task DeleteAsync(string firebaseUid, CancellationToken cancellationToken = default)
-            => _collection.DeleteOneAsync(author => author.FirebaseUid == firebaseUid, cancellationToken);
+        public async Task DeleteAsync(string firebaseUid, CancellationToken cancellationToken = default)
+            => await _collection.DeleteOneAsync(author => author.FirebaseUid == firebaseUid, cancellationToken);
     }
 }

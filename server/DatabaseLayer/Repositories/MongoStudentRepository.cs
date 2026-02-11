@@ -24,9 +24,6 @@ namespace DatabaseLayer.Repositories
 
 			var database = mongoClient.GetDatabase(databaseName);
 			_collection = database.GetCollection<Student>("students");
-			_collection.Indexes.CreateOne(new CreateIndexModel<Student>(
-				Builders<Student>.IndexKeys.Ascending(s => s.FirebaseUid),
-				new CreateIndexOptions { Unique = true }));
 		}
 
 		public Task<List<Student>> GetAllAsync(CancellationToken cancellationToken = default)

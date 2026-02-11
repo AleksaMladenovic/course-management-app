@@ -29,12 +29,34 @@ builder.Services.AddScoped<CommonLayer.Interfaces.IStudentRepository, DatabaseLa
 builder.Services.AddScoped<CommonLayer.Interfaces.ICourseRepository, DatabaseLayer.Repositories.MongoCourseRepository>();
 builder.Services.AddScoped<CommonLayer.Interfaces.ILessonRepository, DatabaseLayer.Repositories.MongoLessonRepository>();
 
+// Service DI registrations
+builder.Services.AddScoped<CommonLayer.Interfaces.IStudentService, BusinessLayer.Services.StudentService>();
+builder.Services.AddScoped<CommonLayer.Interfaces.IAuthorService, BusinessLayer.Services.AuthorService>();
+
+// CORS policy for frontend dev
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend",
+        policy => policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod()
+    );
+});
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+}
+
+app.UseCors("AllowFrontend");
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
 }
 
 app.UseHttpsRedirection();
