@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using CommonLayer.Interfaces;
 using CommonLayer.Models;
 using Microsoft.Extensions.Options;
 using MongoDB.Bson;
@@ -9,7 +10,7 @@ using MongoDB.Driver;
 
 namespace DatabaseLayer.Repositories
 {
-	public sealed class MongoStudentRepository
+	public sealed class MongoStudentRepository: IStudentRepository
 	{
 		private readonly IMongoCollection<Student> _collection;
 

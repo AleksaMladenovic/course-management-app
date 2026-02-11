@@ -23,6 +23,12 @@ builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
 
 builder.Services.AddSingleton<BusinessLayer.Mongo.IMongoConnectionTester, BusinessLayer.Mongo.MongoConnectionTester>();
 
+// Repository DI registrations
+builder.Services.AddScoped<CommonLayer.Interfaces.IAuthorRepository, DatabaseLayer.Repositories.MongoAuthorRepository>();
+builder.Services.AddScoped<CommonLayer.Interfaces.IStudentRepository, DatabaseLayer.Repositories.MongoStudentRepository>();
+builder.Services.AddScoped<CommonLayer.Interfaces.ICourseRepository, DatabaseLayer.Repositories.MongoCourseRepository>();
+builder.Services.AddScoped<CommonLayer.Interfaces.ILessonRepository, DatabaseLayer.Repositories.MongoLessonRepository>();
+
 var app = builder.Build();
 
 if (app.Environment.IsDevelopment())
