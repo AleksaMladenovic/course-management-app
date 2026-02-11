@@ -5,18 +5,25 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, LogIn } from "lucide-react";
 import { auth } from "../firebase";
+import api from "../axios";
+import type { DTOReturnLoginUserData } from "../interfaces/DTOReturnLoginUserData";
+import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
-
+    const { login } = useAuth();
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            await signInWithEmailAndPassword(auth, email, password);
-
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            console.log("Firebase user:", user);
+            const userData: DTOReturnLoginUserData = (await api.post(`/User/login?firebaseUid=${user.uid}`)).data;
+            console.log("User data from backend:", userData);
+            login(userData);
             navigate("/");
         } catch (err) {
             setError("Pogrešan email ili lozinka.");

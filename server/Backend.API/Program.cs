@@ -28,8 +28,8 @@ builder.Services.AddScoped<CommonLayer.Interfaces.IAuthorRepository, DatabaseLay
 builder.Services.AddScoped<CommonLayer.Interfaces.IStudentRepository, DatabaseLayer.Repositories.MongoStudentRepository>();
 builder.Services.AddScoped<CommonLayer.Interfaces.ICourseRepository, DatabaseLayer.Repositories.MongoCourseRepository>();
 builder.Services.AddScoped<CommonLayer.Interfaces.ILessonRepository, DatabaseLayer.Repositories.MongoLessonRepository>();
-
 // Service DI registrations
+builder.Services.AddScoped<CommonLayer.Interfaces.IUserService, BusinessLayer.Services.UserService>();
 builder.Services.AddScoped<CommonLayer.Interfaces.IStudentService, BusinessLayer.Services.StudentService>();
 builder.Services.AddScoped<CommonLayer.Interfaces.IAuthorService, BusinessLayer.Services.AuthorService>();
 

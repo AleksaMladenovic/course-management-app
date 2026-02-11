@@ -1,76 +1,67 @@
-import React, { createContext, useContext, useState, useEffect, type ReactNode } from "react";
-import { getAuth, signOut, onAuthStateChanged } from "firebase/auth";
-//import { auth } from "../firebase"; // Proveri putanju
+import { createContext, useContext, useState, useEffect, type ReactNode } from "react";
+import { onAuthStateChanged } from "firebase/auth";
+import { auth } from "../firebase"; 
 import api from "../axios";
+import type { DTOReturnLoginUserData } from "../interfaces/DTOReturnLoginUserData";
 
-export interface User {
-    id: string;
-    email: string;
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    dob?: string;
-    role: 'korisnik' | 'autor';
-    emailVerified?: boolean;
-}
 
 interface AuthContextType {
-    user: User | null;
+    user: DTOReturnLoginUserData | null;
     loading: boolean;
-    login: (userData: User) => void;
+    login: (userData: DTOReturnLoginUserData) => void;
     logout: () => void;
-    setVerified: (verified: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<DTOReturnLoginUserData | null>(() => {
+        const storedUser = localStorage.getItem("user");
+        return storedUser ? (JSON.parse(storedUser) as DTOReturnLoginUserData) : null;
+    });
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-        //     if (firebaseUser) {
-        //         try {
-        //             // Povlačimo sve dodatne podatke iz tvoje baze
-        //             const res = await api.get(`/User/${firebaseUser.uid}`);
-        //             const userBaza = res.data;
+        const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+            if (firebaseUser) {
+                const storedUser = localStorage.getItem("user");
+                if (storedUser) {
+                    setUser(JSON.parse(storedUser) as DTOReturnLoginUserData);
+                    setLoading(false);
+                    return;
+                }
+                try {
+                    // Povlačimo sve dodatne podatke iz tvoje baze
+                    const res = await api.post<DTOReturnLoginUserData>(`/User/login`, { firebaseId: firebaseUser.uid });
+                    const userBaza = res.data;
                     
-        //             const userData: User = {
-        //                 id: firebaseUser.uid,
-        //                 email: firebaseUser.email || "",
-        //                 firstName: userBaza.firstName,
-        //                 lastName: userBaza.lastName,
-        //                 phone: userBaza.phone,
-        //                 dob: userBaza.dob,
-        //                 role: userBaza.role,
-        //                 emailVerified: firebaseUser.emailVerified,
-        //             };
-        //             setUser(userData);
-        //         } catch (err) {
-        //             console.error("Greška pri povlačenju podataka korisnika", err);
-        //         }
-        //     } else {
-        //         setUser(null);
-        //     }
-        //     setLoading(false);
-        // });
-        //return () => unsubscribe();
+                    setUser(userBaza);
+                    localStorage.setItem("user", JSON.stringify(userBaza));
+                } catch (err) {
+                    console.error("Greška pri povlačenju podataka korisnika", err);
+                }
+            } else {
+                setUser(null);
+                localStorage.removeItem("user");
+            }
+            setLoading(false);
+        });
+        return () => unsubscribe();
     }, []);
 
-    const login = (userData: User) => setUser(userData);
+    const login = (userData: DTOReturnLoginUserData) => {
+        setUser(userData);
+        localStorage.setItem("user", JSON.stringify(userData));
+    };
 
     const logout = async () => {
         //await signOut(auth);
         setUser(null);
+        localStorage.removeItem("user");
     };
-
-    const setVerified = (verified: boolean) => {
-        if (user) setUser({ ...user, emailVerified: verified });
-    };
-
+    
     return (
-        <AuthContext.Provider value={{ user, loading, login, logout, setVerified }}>
+        <AuthContext.Provider value={{ user, loading, login, logout }}>
             {children}
         </AuthContext.Provider>
     );
