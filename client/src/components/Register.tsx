@@ -5,6 +5,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { User, Mail, Lock, Phone, Calendar, ShieldCheck, ArrowRight } from "lucide-react";
 import api from "../axios";
+import { auth } from "../firebase";
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -27,15 +28,15 @@ const Register = () => {
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
-
+        
         if (formData.password !== formData.confirmPassword) {
             setError("Lozinke se ne podudaraju.");
             return;
         }
 
         try {
-            ////const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
-           // const firebaseUser = userCredential.user;
+            const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
+            const firebaseUser = userCredential.user;
 
             // Čuvanje dodatnih podataka u tvoju bazu preko API-ja
             await api.post("/User", {

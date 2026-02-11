@@ -4,6 +4,7 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, Lock, LogIn } from "lucide-react";
+import { auth } from "../firebase";
 
 const Login = () => {
     const [email, setEmail] = useState("");
@@ -14,7 +15,8 @@ const Login = () => {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
-            //await signInWithEmailAndPassword(auth, email, password);
+            await signInWithEmailAndPassword(auth, email, password);
+
             navigate("/");
         } catch (err) {
             setError("Pogrešan email ili lozinka.");
@@ -64,6 +66,8 @@ const Login = () => {
                                            focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all 
                                            text-sm sm:text-base text-white placeholder:text-slate-600" 
                                 placeholder="tvoj@email.com" 
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
                             />
                         </div>
                     </div>
@@ -81,6 +85,8 @@ const Login = () => {
                                            focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all 
                                            text-sm sm:text-base text-white placeholder:text-slate-600" 
                                 placeholder="••••••••" 
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
                             />
                         </div>
                     </div>
