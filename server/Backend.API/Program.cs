@@ -32,7 +32,7 @@ builder.Services.AddScoped<CommonLayer.Interfaces.ILessonRepository, DatabaseLay
 builder.Services.AddScoped<CommonLayer.Interfaces.IUserService, BusinessLayer.Services.UserService>();
 builder.Services.AddScoped<CommonLayer.Interfaces.IStudentService, BusinessLayer.Services.StudentService>();
 builder.Services.AddScoped<CommonLayer.Interfaces.IAuthorService, BusinessLayer.Services.AuthorService>();
-
+builder.Services.AddScoped<CommonLayer.Interfaces.ICourseService, BusinessLayer.Services.CourseService>();
 // CORS policy for frontend dev
 builder.Services.AddCors(options =>
 {

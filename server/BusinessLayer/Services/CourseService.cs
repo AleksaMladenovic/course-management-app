@@ -1,0 +1,33 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using CommonLayer.DTOs;
+using CommonLayer.Interfaces;
+using CommonLayer.Models;
+
+namespace BusinessLayer.Services
+{
+    public class CourseService : ICourseService
+    {
+        private readonly ICourseRepository courseRepository;
+        
+        public CourseService(ICourseRepository courseRepository)
+        {
+            this.courseRepository = courseRepository;
+        }
+
+        public async Task<bool> AddCourseAsync(DTOAddCourse dto)
+        {
+            await this.courseRepository.CreateCourseAsync(dto);
+            return true;
+        }
+
+        public async Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filter)
+        {
+            var result = await courseRepository.GetCoursesAsync(filter);
+            return result;
+        }
+    }
+}
