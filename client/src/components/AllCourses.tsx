@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import type { CourseCardProps } from "./CourseCard";
 import Pagination from "./Pagination";
 import CourseCard from "./CourseCard";
+import AllCoursesFilter, { type AllCoursesFilterProps } from "./AllCoursesFilter";
 
 const sviKurseviFake: CourseCardProps[] = [
     {
@@ -115,7 +116,11 @@ const AllCourses = () => {
     }, [currentPage]);
     
     return (
-        <div className="p-6">            
+        <div className="">       
+            <AllCoursesFilter onApplyFilter={(props: AllCoursesFilterProps) => {
+                console.log("Primeni filtere sa sledećim opcijama:", props);
+                // Handle filter changes here
+            }} />
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {courses?.map((course, index) => (
                     <CourseCard key={index} {...course}></CourseCard>

@@ -24,22 +24,10 @@ const Header = () => {
 
     return (
         <>
-            <header className="bg-[#1f366b] py-4 px-6">
-                <div className="flex items-center justify-between">
-                    <div>
-                        {user?.role === RoleType.Student && (
-                            <h1 className="text-white text-2xl font-bold">Dobrodošli, studentu {user.name}!</h1>
-                        )}
-                        {user?.role === RoleType.Author && (
-                            <h1 className="text-white text-2xl font-bold">Dobrodošli, autoru {user.name}!</h1>
-                        )}
-                    </div>
-                    
-                </div>
-
-                {/* Dugmići za Student */}
+            <header className="bg-[#1f366b] py-2 px-6 rounded-xl">
+                {/* Dugmići za Student */} 
                 {user?.role === RoleType.Student && (
-                    <div className="mt-4 flex gap-3 justify-between">
+                    <div className="flex gap-3 justify-between">
                         <div className="flex gap-3">
                             <button
                                 onClick={() => handleStudentViewChange("allCourses")}
@@ -72,7 +60,7 @@ const Header = () => {
 
                 {/* Dugmići za Author */}
                 {user?.role === RoleType.Author && (
-                    <div className="mt-4 flex gap-3 justify-between">
+                    <div className="flex gap-3 justify-between">
                         <button
                             onClick={() => handleAuthorViewChange("myCourses")}
                             className={`px-4 py-2 rounded font-semibold transition-all ${
