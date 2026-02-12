@@ -8,6 +8,9 @@ import api from "../axios";
 import { auth } from "../firebase";
 import type { DTORegisterAuthor } from "../interfaces/DTORegisterAuthor";
 import type { DTORegisterStudent } from "../interfaces/DTORegisterStudent";
+import type { DTOReturnLoginUserData } from "../interfaces/DTOReturnLoginUserData";
+import RoleType from "../enums/RoleType";
+import { useAuth } from "../context/AuthContext";
 
 const Register = () => {
     const [formData, setFormData] = useState({
@@ -22,11 +25,11 @@ const Register = () => {
     });
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
-
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
-
+    const { login } = useAuth();
+    
     const handleRegister = async (e: React.FormEvent) => {
         e.preventDefault();
         setError(null);
@@ -63,7 +66,15 @@ const Register = () => {
                 };
                 await api.post("/Student/register", studentData);
             }
-
+            const data:DTOReturnLoginUserData = {
+                email: formData.email,
+                name: formData.firstName,
+                surname: formData.lastName,
+                telephone: formData.phone,
+                dateOfBirth: formData.dob,
+                role: formData.role === "autor" ? RoleType.Author : RoleType.Student
+            } 
+            login(data);
             navigate("/");
         } catch (err: any) {
             setError("Greška pri registraciji. Proverite podatke.");

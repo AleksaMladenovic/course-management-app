@@ -25,6 +25,10 @@ namespace BusinessLayer.Services
             return true;
         }
 
+        public async Task<DTOCourseWithLessons?> GetCourseByIdAsync(string id)
+        {   
+            return await courseRepository.GetCourseByIdAsync(id);
+        }
         public async Task<bool> UpdateCourseAsync(string id, DTOUpdateCourse dto)
         {
             if (!ObjectId.TryParse(id, out var objId)) return false;

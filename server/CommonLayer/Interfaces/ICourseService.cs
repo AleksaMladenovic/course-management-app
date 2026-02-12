@@ -14,5 +14,7 @@ namespace CommonLayer.Interfaces
         Task<bool> UpdateCourseAsync(string id, DTOUpdateCourse dto);
         Task<bool> DeleteCourseAsync(string id);
         public Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filter);
+        public Task<DTOCourseWithLessons?> GetCourseByIdAsync(string id);
+
     }
 }
