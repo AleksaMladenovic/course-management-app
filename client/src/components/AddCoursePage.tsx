@@ -15,7 +15,7 @@ const AddCoursePage = () => {
     const onAddCourse = async (courseData: DTOAddCourse) => {
         console.log("Adding course:", courseData);
         try{
-            await api.post("Course", courseData)
+            await api.post("Course/addCourse", courseData)
         } catch (error) {
             console.error("Error adding course:", error);
         }

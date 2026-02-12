@@ -15,7 +15,7 @@ namespace Backend.API.Controllers
             this.courseService = courseService;
         }
 
-        [HttpPost]
+        [HttpPost("addCourse")]
         public async Task<IActionResult> AddCourse([FromBody] DTOAddCourse dto)
         {
             var result = await courseService.AddCourseAsync(dto);
@@ -26,7 +26,7 @@ namespace Backend.API.Controllers
             return BadRequest("Ne uspesno dodat kurs");
         }
 
-        [HttpGet]
+        [HttpGet("getCoursesByFilter")]
         public async Task<IActionResult> GetCoursesAsync([FromQuery] DTOCourseFilter dto)
         {
             var result = await courseService.GetCoursesAsync(dto);
@@ -38,6 +38,18 @@ namespace Backend.API.Controllers
                 return BadRequest("Greska pri filtriranju");
             }
         }
+        [HttpGet("getById/{id}")]
+        public async Task<IActionResult> GetCourseById([FromRoute] string id)
+        {
+            var result = await courseService.GetCourseByIdAsync(id);
+            if (result != null)
+            {
+                return Ok(result);
+            }
+            else
+            {
+                return BadRequest("Greska pri dohvatanju kursa");
+            }
+        }
     }
-   
 }

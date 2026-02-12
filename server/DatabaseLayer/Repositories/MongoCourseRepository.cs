@@ -13,44 +13,44 @@ using MongoDB.Driver.Linq;
 
 namespace DatabaseLayer.Repositories
 {
-	public sealed class MongoCourseRepository : ICourseRepository
-	{
-		private readonly IMongoCollection<Course> _collection;
+    public sealed class MongoCourseRepository : ICourseRepository
+    {
+        private readonly IMongoCollection<Course> _collection;
         private readonly IAuthorRepository _authorRepository;
 
-		public MongoCourseRepository(IMongoClient mongoClient, IOptions<MongoSettings> settings, IAuthorRepository authorRepository)
-		{
+        public MongoCourseRepository(IMongoClient mongoClient, IOptions<MongoSettings> settings, IAuthorRepository authorRepository)
+        {
             this._authorRepository = authorRepository;
-			var databaseName = settings.Value.DatabaseName;
-			if (string.IsNullOrWhiteSpace(databaseName))
-			{
-				throw new InvalidOperationException("MongoSettings:DatabaseName is missing.");
-			}
+            var databaseName = settings.Value.DatabaseName;
+            if (string.IsNullOrWhiteSpace(databaseName))
+            {
+                throw new InvalidOperationException("MongoSettings:DatabaseName is missing.");
+            }
 
-			var database = mongoClient.GetDatabase(databaseName);
-			_collection = database.GetCollection<Course>("courses");
-		}
-      
+            var database = mongoClient.GetDatabase(databaseName);
+            _collection = database.GetCollection<Course>("courses");
+        }
 
-		public Task<List<Course>> GetAllAsync(CancellationToken cancellationToken = default)
-			=> _collection.Find(Builders<Course>.Filter.Empty).ToListAsync(cancellationToken);
 
-		public async Task<Course?> GetByIdAsync(ObjectId id, CancellationToken cancellationToken = default)
-			=> await _collection.Find(course => course.Id == id).FirstOrDefaultAsync(cancellationToken);
+        public Task<List<Course>> GetAllAsync(CancellationToken cancellationToken = default)
+            => _collection.Find(Builders<Course>.Filter.Empty).ToListAsync(cancellationToken);
 
-		public Task CreateAsync(Course course, CancellationToken cancellationToken = default)
-			=> _collection.InsertOneAsync(course, cancellationToken: cancellationToken);
+        public async Task<Course?> GetByIdAsync(ObjectId id, CancellationToken cancellationToken = default)
+            => await _collection.Find(course => course.Id == id).FirstOrDefaultAsync(cancellationToken);
 
-		public Task UpdateAsync(ObjectId id, Course course, CancellationToken cancellationToken = default)
-			=> _collection.ReplaceOneAsync(c => c.Id == id, course, cancellationToken: cancellationToken);
+        public Task CreateAsync(Course course, CancellationToken cancellationToken = default)
+            => _collection.InsertOneAsync(course, cancellationToken: cancellationToken);
 
-		public Task DeleteAsync(ObjectId id, CancellationToken cancellationToken = default)
-			=> _collection.DeleteOneAsync(course => course.Id == id, cancellationToken);
+        public Task UpdateAsync(ObjectId id, Course course, CancellationToken cancellationToken = default)
+            => _collection.ReplaceOneAsync(c => c.Id == id, course, cancellationToken: cancellationToken);
+
+        public Task DeleteAsync(ObjectId id, CancellationToken cancellationToken = default)
+            => _collection.DeleteOneAsync(course => course.Id == id, cancellationToken);
 
         public async Task CreateCourseAsync(DTOAddCourse dto, CancellationToken cancellationToken = default)
         {
-            Author Autor = await this._authorRepository.GetByIdAsync(dto.AuthorFirebaseId,cancellationToken);
-            
+            Author Autor = await this._authorRepository.GetByIdAsync(dto.AuthorFirebaseId, cancellationToken);
+
             var course = new Course
             {
                 Name = dto.Name,
@@ -58,7 +58,7 @@ namespace DatabaseLayer.Repositories
                 Description = dto.Description,
                 Difficulty = dto.Difficulty,
                 AuthorFireBaseId = dto.AuthorFirebaseId,
-                Author= Autor
+                Author = Autor
             };
 
             await _collection.InsertOneAsync(course, null, cancellationToken);
@@ -91,7 +91,7 @@ namespace DatabaseLayer.Repositories
             int page = filterDto.PageNumber < 1 ? 1 : filterDto.PageNumber;
             int skip = (page - 1) * filterDto.PageSize;
 
-            var totalCount = await _collection.CountDocumentsAsync(filter,options:null, cancellationToken);
+            var totalCount = await _collection.CountDocumentsAsync(filter, options: null, cancellationToken);
 
             var items = await _collection.Find(filter)
                 .Sort(sort)
@@ -106,7 +106,7 @@ namespace DatabaseLayer.Repositories
                 DurationInWeeks = course.DurationInWeeks,
                 Description = course.Description,
                 Difficulty = course.Difficulty,
-                Author = new DTOCourseAuthor{ AuthorFirebaseId = course.AuthorFireBaseId, Name = course.Author.Name, Surname = course.Author.Surname }
+                Author = new DTOCourseAuthor { AuthorFirebaseId = course.AuthorFireBaseId, Name = course.Author.Name, Surname = course.Author.Surname }
             });
 
             return new DTOCoursePagedResponse
@@ -114,6 +114,30 @@ namespace DatabaseLayer.Repositories
                 Items = mappedItems,
                 TotalCount = totalCount
             };
+        }
+
+        public async Task<DTOCourseWithLessons?> GetCourseByIdAsync(string id, CancellationToken cancellationToken = default)
+        {
+            var course = await this.GetByIdAsync(new ObjectId(id), cancellationToken);
+            if (course == null)
+                return null;
+            var mappedCourse = new DTOCourseWithLessons
+            {
+                Id = course.Id.ToString(),
+                Name = course.Name,
+                DurationInWeeks = course.DurationInWeeks,
+                Description = course.Description,
+                Difficulty = course.Difficulty,
+                Author = new DTOCourseAuthor { AuthorFirebaseId = course.AuthorFireBaseId, Name = course.Author.Name, Surname = course.Author.Surname },
+                Lessons = course.Lessons.ConvertAll(lesson => new DTOLessonResponse
+                {
+                    Id = lesson.Id.ToString(),
+                    Name = lesson.Name,
+                    DurationInMinutes = lesson.DurationInMinutes,
+                    Description = lesson.Description
+                })
+            };
+            return mappedCourse;
         }
     }
 }

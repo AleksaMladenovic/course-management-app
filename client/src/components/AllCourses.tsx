@@ -38,7 +38,7 @@ const AllCourses = () => {
                 pageSize: totalCoursesOnPage,
             } as CourseFilterWithPaginationProps;
             console.log("Filter za API poziv:", filter);
-            const response: DTOCoursePagedResponse = await (await api.get("Course", { params: filter })).data;
+            const response: DTOCoursePagedResponse = await (await api.get("Course/getCoursesByFilter", { params: filter })).data;
             setTotalCourses(response.totalCount);
             setCourses(response.items);
         };

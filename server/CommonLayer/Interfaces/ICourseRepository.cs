@@ -16,5 +16,6 @@ namespace CommonLayer.Interfaces
         Task DeleteAsync(ObjectId id, CancellationToken cancellationToken = default);
         Task CreateCourseAsync(DTOAddCourse dto, CancellationToken cancellationToken = default);
         Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filterDto, CancellationToken cancellationToken = default);
+        Task<DTOCourseWithLessons?> GetCourseByIdAsync(string id, CancellationToken cancellationToken = default);
     }
 }

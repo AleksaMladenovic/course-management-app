@@ -24,6 +24,11 @@ namespace BusinessLayer.Services
             return true;
         }
 
+        public async Task<DTOCourseWithLessons?> GetCourseByIdAsync(string id)
+        {   
+            return await courseRepository.GetCourseByIdAsync(id);
+        }
+
         public async Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filter)
         {
             var result = await courseRepository.GetCoursesAsync(filter);
