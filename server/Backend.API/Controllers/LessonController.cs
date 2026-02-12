@@ -30,5 +30,31 @@ namespace Backend.API.Controllers
             }
             
         }
+
+        [HttpPut("updateLesson/{courseId}/{lessonId}")]
+        public async Task<IActionResult> UpdateLesson(string courseId, string lessonId, [FromBody] DTOUpdateLesson dto)
+        {
+            var result = await _lessonService.UpdateLessonAsync(courseId, lessonId, dto);
+
+            if (!result)
+            {
+                return BadRequest("Nije moguće pronaći kurs ili lekciju sa zadatim parametrima.");
+            }
+
+            return Ok("Lekcija je uspešno ažurirana.");
+        }
+
+        [HttpDelete("deleteLesson/{courseId}/{lessonId}")]
+        public async Task<IActionResult> DeleteLesson(string courseId, string lessonId)
+        {
+            var result = await _lessonService.DeleteLessonAsync(courseId, lessonId);
+
+            if (!result)
+            {
+                return BadRequest("Nije moguće obrisati lekciju. Proverite ID-eve.");
+            }
+
+            return Ok("Uspesno obrisana lekcija iz kursa.");
+        }
     }
 }

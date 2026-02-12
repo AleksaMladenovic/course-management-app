@@ -32,5 +32,27 @@ namespace BusinessLayer.Services
 
             return isAdded;
         }
+        public async Task<bool> UpdateLessonAsync(string courseId, string lessonId, DTOUpdateLesson dto)
+        {
+            if (!ObjectId.TryParse(courseId, out var objCourseId) ||
+                !ObjectId.TryParse(lessonId, out var objLessonId))
+            {
+                return false;
+            }
+
+            return await _lessonRepository.UpdateLessonAsync(objCourseId, objLessonId,dto);
+        }
+
+        public async Task<bool> DeleteLessonAsync(string courseId, string lessonId)
+        {
+            if (!ObjectId.TryParse(courseId, out var objCourseId) ||
+                !ObjectId.TryParse(lessonId, out var objLessonId))
+            {
+                return false;
+            }
+
+            return await _lessonRepository.DeleteLessonAsync(objCourseId, objLessonId);
+        }
+
     }
 }

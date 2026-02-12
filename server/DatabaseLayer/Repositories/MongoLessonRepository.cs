@@ -63,5 +63,57 @@ namespace DatabaseLayer.Repositories
 
             return result.ModifiedCount > 0;
         }
+        public async Task<bool> UpdateLessonAsync(ObjectId courseId, ObjectId lessonId, DTOUpdateLesson updateDto, CancellationToken cancellationToken = default)
+        {
+            var lessonUpdateList = new List<UpdateDefinition<Lesson>>();
+            var courseUpdateList = new List<UpdateDefinition<Course>>();
+
+            if (!string.IsNullOrWhiteSpace(updateDto.Name))
+            {
+                lessonUpdateList.Add(Builders<Lesson>.Update.Set(l => l.Name, updateDto.Name));
+                courseUpdateList.Add(Builders<Course>.Update.Set("Lessons.$.Name", updateDto.Name));
+            }
+
+            if (updateDto.DurationInMinutes!=0)
+            {
+                lessonUpdateList.Add(Builders<Lesson>.Update.Set(l => l.DurationInMinutes, updateDto.DurationInMinutes));
+                courseUpdateList.Add(Builders<Course>.Update.Set("Lessons.$.DurationInMinutes", updateDto.DurationInMinutes));
+            }
+
+            if (!string.IsNullOrWhiteSpace(updateDto.Description))
+            {
+                lessonUpdateList.Add(Builders<Lesson>.Update.Set(l => l.Description, updateDto.Description));
+                courseUpdateList.Add(Builders<Course>.Update.Set("Lessons.$.Description", updateDto.Description));
+            }
+
+            if (lessonUpdateList.Count == 0) return true;
+
+            var finalLessonUpdate = Builders<Lesson>.Update.Combine(lessonUpdateList);
+            var finalCourseUpdate = Builders<Course>.Update.Combine(courseUpdateList);
+
+            await _collection.UpdateOneAsync(l => l.Id == lessonId, finalLessonUpdate, cancellationToken: cancellationToken);
+
+            var courseFilter = Builders<Course>.Filter.And(
+                Builders<Course>.Filter.Eq(c => c.Id, courseId),
+                Builders<Course>.Filter.ElemMatch(c => c.Lessons, l => l.Id == lessonId)
+            );
+
+            var result = await _courseCollection.UpdateOneAsync(courseFilter, finalCourseUpdate, cancellationToken: cancellationToken);
+
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<bool> DeleteLessonAsync(ObjectId courseId, ObjectId lessonId, CancellationToken cancellationToken = default)
+        {
+            await _collection.DeleteOneAsync(l => l.Id == lessonId, cancellationToken);
+
+            var courseFilter = Builders<Course>.Filter.Eq(c => c.Id, courseId);
+
+            var courseUpdate = Builders<Course>.Update.PullFilter(c => c.Lessons, l => l.Id == lessonId);
+
+            var result = await _courseCollection.UpdateOneAsync(courseFilter, courseUpdate, cancellationToken: cancellationToken);
+
+            return result.ModifiedCount > 0;
+        }
     }
 }
