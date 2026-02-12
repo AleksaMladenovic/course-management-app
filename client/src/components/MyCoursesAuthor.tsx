@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Pagination from "./Pagination";
+import AddCourseCard from "./AddCourseCard";
 
 const MyCoursesAuthor = () => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -8,12 +9,8 @@ const MyCoursesAuthor = () => {
         <div className="p-6">
             <h2 className="text-2xl font-bold mb-4">Moji kursevi Autor</h2>
 
-
-            <div className="mt-4 p-4 bg-slate-700 rounded">
-                <h3 className="text-xl font-semibold">Kurs {currentPage}</h3>
-                <p>Opis kursa {currentPage}...</p>
-            </div>
-
+                <AddCourseCard />
+                
             <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
         </div>
     )

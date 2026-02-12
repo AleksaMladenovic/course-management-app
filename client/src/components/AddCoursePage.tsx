@@ -12,10 +12,14 @@ const AddCoursePage = () => {
     const [description, setDescription] = useState<string>("");
     const [difficulty, setDifficulty] = useState<DificultyTypeEnum>(DificultyType.Easy);
 
-    const onAddCourse = async (courseData: DTOAddCourse) =>
-         {
-        await api.post("Course", courseData)
-        .then(response => {alert("Kurs uspešno dodat!")}); 
+    const onAddCourse = async (courseData: DTOAddCourse) => {
+        console.log("Adding course:", courseData);
+        try{
+            await api.post("Course", courseData)
+        } catch (error) {
+            console.error("Error adding course:", error);
+        }
+
     };
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -25,7 +29,7 @@ const AddCoursePage = () => {
             durationInWeeks,
             description,
             difficulty,
-            authorFirebaseId: auth.currentUser?.uid || "", 
+            authorFirebaseId: auth.currentUser?.uid || "",
         });
     };
 

@@ -66,54 +66,52 @@ namespace DatabaseLayer.Repositories
 
         public async Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filterDto, CancellationToken cancellationToken = default)
         {
-            var query = _collection.AsQueryable();
+            var filter = Builders<Course>.Filter.Empty;
 
             if (!string.IsNullOrEmpty(filterDto.Name))
-                query = query.Where(x => x.Name.Contains(filterDto.Name));
+                filter &= Builders<Course>.Filter.Regex(x => x.Name, new BsonRegularExpression(filterDto.Name, "i"));
 
             if (filterDto.MaxDurationInWeeks > 0)
-            {
-                query = query.Where(x => x.DurationInWeeks <= filterDto.MaxDurationInWeeks &&
-                                         x.DurationInWeeks >= filterDto.MinDurationInWeeks);
-            }
+                filter &= Builders<Course>.Filter.Lte(x => x.DurationInWeeks, filterDto.MaxDurationInWeeks);
+
+            if (filterDto.MinDurationInWeeks > 0)
+                filter &= Builders<Course>.Filter.Gte(x => x.DurationInWeeks, filterDto.MinDurationInWeeks);
 
             if (filterDto.Difficulty.HasValue && filterDto.Difficulty.Value != 0)
-                query = query.Where(x => x.Difficulty == filterDto.Difficulty.Value);
+                filter &= Builders<Course>.Filter.Eq(x => x.Difficulty, filterDto.Difficulty.Value);
 
-            var totalCount = await query.CountAsync(cancellationToken);
-
-            query = filterDto.Sort switch
+            var sort = filterDto.Sort switch
             {
-                CourseSortEnum.Name => query.OrderBy(x => x.Name),
-                CourseSortEnum.AscDuration => query.OrderBy(x => x.DurationInWeeks),
-                CourseSortEnum.DescDuration => query.OrderByDescending(x => x.DurationInWeeks),
-                _ => query 
+                CourseSortEnum.Name => Builders<Course>.Sort.Ascending(x => x.Name),
+                CourseSortEnum.AscDuration => Builders<Course>.Sort.Ascending(x => x.DurationInWeeks),
+                CourseSortEnum.DescDuration => Builders<Course>.Sort.Descending(x => x.DurationInWeeks),
+                _ => Builders<Course>.Sort.Ascending(x => x.Name)
             };
 
             int page = filterDto.PageNumber < 1 ? 1 : filterDto.PageNumber;
             int skip = (page - 1) * filterDto.PageSize;
 
-            var items = await query.Skip(skip)
-                                  .Take(filterDto.PageSize)
-                                  .Select(c => new DTOCourseResponse
-                                  {
-                                      Id = c.Id.ToString(),
-                                      Name = c.Name,
-                                      DurationInWeeks = c.DurationInWeeks,
-                                      Description = c.Description,
-                                      Difficulty = c.Difficulty,
-                                      Author = new DTOCourseAuthor
-                                      {
-                                          AuthorFirebaseId = c.AuthorFireBaseId,
-                                          Name = c.Author.Name,
-                                          Surname = c.Author.Surname
-                                      }
-                                  })
-                                  .ToListAsync(cancellationToken);
+            var totalCount = await _collection.CountDocumentsAsync(filter,options:null, cancellationToken);
+
+            var items = await _collection.Find(filter)
+                .Sort(sort)
+                .Skip(skip)
+                .Limit(filterDto.PageSize)
+                .ToListAsync(cancellationToken);
+
+            var mappedItems = items.ConvertAll(course => new DTOCourseResponse
+            {
+                Id = course.Id.ToString(),
+                Name = course.Name,
+                DurationInWeeks = course.DurationInWeeks,
+                Description = course.Description,
+                Difficulty = course.Difficulty,
+                Author = new DTOCourseAuthor{ AuthorFirebaseId = course.AuthorFireBaseId, Name = course.Author.Name, Surname = course.Author.Surname }
+            });
 
             return new DTOCoursePagedResponse
             {
-                Items = items,
+                Items = mappedItems,
                 TotalCount = totalCount
             };
         }
