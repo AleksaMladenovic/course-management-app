@@ -1,27 +1,29 @@
 import { useEffect, useState } from "react";
+import DificultyType, { DificultyTypeToString, type DificultyType as DificultyTypeEnum } from "../enums/DificultyType";
 
 export interface AllCoursesFilterProps {
-    searchByName ?: string;
-    minDuration ?: number;
-    maxDuration ?: number;
-    sortBy ?: SortByOptionsType;
+    name?: string;
+    maxDurationInWeeks?: number;
+    minDurationInWeeks?: number;
+    difficulty?: DificultyTypeEnum;
+    sort?: SortByOptionsType;
 }
 
 const SortByOptionsType = {
-    durationAsc: 0,
-    durationDesc: 1,
+    name: 1,
+    ascDuration: 2,
+    descDuration: 3,
 } as const;
 
 type SortByOptionsType = typeof SortByOptionsType[keyof typeof SortByOptionsType];
 
 
-const AllCoursesFilter = ({ onApplyFilter}: { onApplyFilter: (props: AllCoursesFilterProps) => void }) => {
+const AllCoursesFilter = ({ onApplyFilter }: { onApplyFilter: (props: AllCoursesFilterProps) => void }) => {
     const [searchByName, setSearchByName] = useState<string>("");
     const [minDuration, setMinDuration] = useState<number>();
     const [maxDuration, setMaxDuration] = useState<number>();
-    const [sortBy, setSortBy] = useState<SortByOptionsType>();
-    
-    
+    const [sort, setSort] = useState<SortByOptionsType>(SortByOptionsType.name);
+    const [difficulty, setDifficulty] = useState<DificultyTypeEnum>();
 
     return (
         <div className="p-4 rounded mb-6shadow">
@@ -49,17 +51,29 @@ const AllCoursesFilter = ({ onApplyFilter}: { onApplyFilter: (props: AllCoursesF
                     className="p-2 border border-gray-300 rounded w-full md:w-40"
                     min={1}
                 />
+                <select value={difficulty ?? ""} onChange={(e) => {
+                    if (e.target.value === "")
+                        setDifficulty(undefined);
+                    else
+                        setDifficulty(Number(e.target.value) as DificultyTypeEnum)
+                }
+                } className="p-2 border border-gray-300 rounded w-full md:w-48">
+                    <option value="">Sve težine</option>
+                    <option value={DificultyType.Easy}>{DificultyTypeToString[DificultyType.Easy]}</option>
+                    <option value={DificultyType.Medium}>{DificultyTypeToString[DificultyType.Medium]}</option>
+                    <option value={DificultyType.Hard}>{DificultyTypeToString[DificultyType.Hard]}</option>
+                </select>
                 <select
-                    value={sortBy ?? ""}
-                    onChange={(e) => setSortBy(e.target.value !== "" ? Number(e.target.value) as SortByOptionsType : undefined)}
+                    value={sort ?? ""}
+                    onChange={(e) => setSort(Number(e.target.value) as SortByOptionsType)}
                     className="p-2 border border-gray-300 rounded w-full md:w-48"
                 >
-                    <option value="">Sortiraj po...</option>
-                    <option value={SortByOptionsType.durationAsc}>Trajanje (rastuće)</option>
-                    <option value={SortByOptionsType.durationDesc}>Trajanje (opadajuće)</option>
+                    <option value={SortByOptionsType.name}>Naziv</option>
+                    <option value={SortByOptionsType.ascDuration}>Trajanje (rastuće)</option>
+                    <option value={SortByOptionsType.descDuration}>Trajanje (opadajuće)</option>
                 </select>
                 <button className="btn bg-indigo-600 px-4 py-2 rounded font-semibold transition-all hover:bg-indigo-700"
-                    onClick={() => onApplyFilter({ searchByName, minDuration, maxDuration, sortBy })}
+                    onClick={() => onApplyFilter({ name: searchByName, minDurationInWeeks: minDuration, maxDurationInWeeks: maxDuration, difficulty, sort: sort })}
                 >
                     Primeni filtere
                 </button>

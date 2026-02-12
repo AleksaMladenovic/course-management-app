@@ -26,8 +26,8 @@ namespace Backend.API.Controllers
             return BadRequest("Ne uspesno dodat kurs");
         }
 
-        [HttpPut]
-        public async Task<IActionResult> GetCoursesAsync([FromBody] DTOCourseFilter dto)
+        [HttpGet]
+        public async Task<IActionResult> GetCoursesAsync([FromQuery] DTOCourseFilter dto)
         {
             var result = await courseService.GetCoursesAsync(dto);
             if (result != null)

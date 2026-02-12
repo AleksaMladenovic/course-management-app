@@ -6,7 +6,7 @@ export interface CourseCardProps {
     dificulty: DificultyType;
     authorName: string;
     authorSurname: string;
-    authorId: number;
+    authorId: string;
 }
 
 const CourseCard: React.FC<CourseCardProps> = ({ name, durationInWeeks, dificulty, authorName, authorSurname, authorId }) => {
