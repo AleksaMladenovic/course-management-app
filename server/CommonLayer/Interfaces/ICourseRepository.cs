@@ -15,6 +15,8 @@ namespace CommonLayer.Interfaces
         Task UpdateAsync(ObjectId id, Course course, CancellationToken cancellationToken = default);
         Task DeleteAsync(ObjectId id, CancellationToken cancellationToken = default);
         Task CreateCourseAsync(DTOAddCourse dto, CancellationToken cancellationToken = default);
+        Task<bool> UpdateCourseAsync(ObjectId id, DTOUpdateCourse dto, CancellationToken cancellationToken = default);
+        Task<bool> DeleteCourseAsync(ObjectId id, CancellationToken cancellationToken = default);
         Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filterDto, CancellationToken cancellationToken = default);
 
     }
