@@ -17,9 +17,10 @@ namespace DatabaseLayer.Repositories
     {
         private readonly IMongoCollection<Course> _collection;
         private readonly IAuthorRepository _authorRepository;
+        private readonly IMongoCollection<Lesson> _lessonCollection;
 
         public MongoCourseRepository(IMongoClient mongoClient, IOptions<MongoSettings> settings, IAuthorRepository authorRepository)
-        {
+		{
             this._authorRepository = authorRepository;
             var databaseName = settings.Value.DatabaseName;
             if (string.IsNullOrWhiteSpace(databaseName))
@@ -27,9 +28,11 @@ namespace DatabaseLayer.Repositories
                 throw new InvalidOperationException("MongoSettings:DatabaseName is missing.");
             }
 
-            var database = mongoClient.GetDatabase(databaseName);
-            _collection = database.GetCollection<Course>("courses");
+			var database = mongoClient.GetDatabase(databaseName);
+			_collection = database.GetCollection<Course>("courses");
+            _lessonCollection = database.GetCollection<Lesson>("lessons");
         }
+      
 
 
         public Task<List<Course>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -62,6 +65,50 @@ namespace DatabaseLayer.Repositories
             };
 
             await _collection.InsertOneAsync(course, null, cancellationToken);
+        }
+
+        public async Task<bool> UpdateCourseAsync(ObjectId id, DTOUpdateCourse dto, CancellationToken cancellationToken = default)
+        {
+            var updates = new List<UpdateDefinition<Course>>();
+
+            if (!string.IsNullOrWhiteSpace(dto.Name))
+                updates.Add(Builders<Course>.Update.Set(c => c.Name, dto.Name));
+
+            if (dto.DurationInWeeks.HasValue && dto.DurationInWeeks.Value!=0)
+                updates.Add(Builders<Course>.Update.Set(c => c.DurationInWeeks, dto.DurationInWeeks.Value));
+
+            if (!string.IsNullOrWhiteSpace(dto.Description))
+                updates.Add(Builders<Course>.Update.Set(c => c.Description, dto.Description));
+
+            if (dto.Difficulty.HasValue && dto.Difficulty.Value!=0)
+                updates.Add(Builders<Course>.Update.Set(c => c.Difficulty, dto.Difficulty.Value));
+
+            if (updates.Count == 0) return true;
+
+            var result = await _collection.UpdateOneAsync(
+                c => c.Id == id,
+                Builders<Course>.Update.Combine(updates),
+                cancellationToken: cancellationToken
+            );
+
+            return result.ModifiedCount > 0;
+        }
+
+        public async Task<bool> DeleteCourseAsync(ObjectId id, CancellationToken cancellationToken = default)
+        {
+            var course = await _collection.Find(c => c.Id == id).FirstOrDefaultAsync(cancellationToken);
+            if (course == null) return false;
+
+            if (course.Lessons != null && course.Lessons.Any())
+            {
+                var lessonIds = course.Lessons.Select(l => l.Id).ToList();
+                var lessonFilter = Builders<Lesson>.Filter.In(l => l.Id, lessonIds);
+                await _lessonCollection.DeleteManyAsync(lessonFilter, cancellationToken);
+            }
+
+            var result = await _collection.DeleteOneAsync(c => c.Id == id, cancellationToken);
+
+            return result.DeletedCount > 0;
         }
 
         public async Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filterDto, CancellationToken cancellationToken = default)

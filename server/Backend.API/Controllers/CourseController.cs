@@ -1,4 +1,5 @@
-﻿using CommonLayer.DTOs;
+﻿using BusinessLayer.Services;
+using CommonLayer.DTOs;
 using CommonLayer.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -24,6 +25,21 @@ namespace Backend.API.Controllers
                 return Ok("Uspesno dodat kurs");
             }
             return BadRequest("Ne uspesno dodat kurs");
+        }
+        [HttpPut("updateCourse/{id}")]
+        public async Task<IActionResult> UpdateCourse(string id, [FromBody] DTOUpdateCourse dto)
+        {
+            var success = await courseService.UpdateCourseAsync(id, dto);
+            if (!success) return BadRequest("Kurs nije pronađen ili nema izmena.");
+            return Ok("Kurs uspešno ažuriran.");
+        }
+
+        [HttpDelete("deleteCourse/{id}")]
+        public async Task<IActionResult> DeleteCourse(string id)
+        {
+            var success = await courseService.DeleteCourseAsync(id);
+            if (!success) return BadRequest("Kurs nije pronađen.");
+            return Ok("Uspesno obrisan kurs"); 
         }
 
         [HttpGet("getCoursesByFilter")]
