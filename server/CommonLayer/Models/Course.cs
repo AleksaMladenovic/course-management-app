@@ -12,6 +12,10 @@ namespace CommonLayer.Models
         public int DurationInWeeks {  get; set; }
         public string Description {  get; set; } = string.Empty;
         public Difficulty Difficulty { get; set; }
+
+        public string AuthorFireBaseId { get; set; }
+
+        public Author Author { get; set; }
         public List<Lesson> Lessons { get; set; } = new();
     }
 }
