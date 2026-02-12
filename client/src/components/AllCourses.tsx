@@ -74,6 +74,7 @@ const AllCourses = () => {
                 {courses?.map((course) => (
                     <CourseCard
                         key={course.id}
+                        id={course.id}
                         authorId={course.author.authorFirebaseId}
                         authorName={course.author.name}
                         authorSurname={course.author.surname}

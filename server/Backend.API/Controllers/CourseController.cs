@@ -41,7 +41,7 @@ namespace Backend.API.Controllers
         [HttpGet("getById/{id}")]
         public async Task<IActionResult> GetCourseById([FromRoute] string id)
         {
-            var result = await courseService.GetCourseByIdAsync(id);
+            DTOCourseWithLessons? result = await courseService.GetCourseByIdAsync(id);
             if (result != null)
             {
                 return Ok(result);
