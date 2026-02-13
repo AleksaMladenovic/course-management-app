@@ -15,6 +15,6 @@ namespace CommonLayer.Models
         public string Email { get; set; } = string.Empty;
         public string Telephone {  get; set; } = string.Empty;
         public DateTime DateOfBirth { get; set; } 
-        public List<Course> Courses { get; set; } = new();
+        public List<string> Courses { get; set; } = new();
     }
 }

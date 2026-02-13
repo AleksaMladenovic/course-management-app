@@ -186,5 +186,26 @@ namespace DatabaseLayer.Repositories
             };
             return mappedCourse;
         }
+
+        public async Task EnrollStudentToCourseAsync(string courseId, string studentFirebaseUid, CancellationToken cancellationToken = default)
+        {
+            var courseObjectId = new ObjectId(courseId);
+            var courseFilter = Builders<Course>.Filter.Eq(c => c.Id, courseObjectId);
+            var courseUpdate = Builders<Course>.Update.AddToSet(c => c.EnrolledStudents, studentFirebaseUid);
+            var courseResult = await _collection.UpdateOneAsync(courseFilter, courseUpdate, cancellationToken: cancellationToken);
+
+            if (courseResult.ModifiedCount == 0)
+            {
+                throw new InvalidOperationException($"Course with id {courseId} not found or student already enrolled.");
+            }
+        }
+
+        public Task UnEnrollStudentFromCourse(string courseId, string studentFirebaseUid)
+        {
+            var courseObjectId = new ObjectId(courseId);
+            var courseFilter = Builders<Course>.Filter.Eq(c => c.Id, courseObjectId);
+            var courseUpdate = Builders<Course>.Update.Pull(c => c.EnrolledStudents, studentFirebaseUid);
+            return _collection.UpdateOneAsync(courseFilter, courseUpdate);
+        }
     }
 }

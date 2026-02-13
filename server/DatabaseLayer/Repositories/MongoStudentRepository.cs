@@ -40,5 +40,29 @@ namespace DatabaseLayer.Repositories
 
 		public Task DeleteAsync(string firebaseUid, CancellationToken cancellationToken = default)
 			=> _collection.DeleteOneAsync(student => student.FirebaseUid == firebaseUid, cancellationToken);
-	}
+
+		public async Task EnrollStudentToCourse(string firebaseUid, string courseId, CancellationToken cancellationToken = default)
+		{
+			var filter = Builders<Student>.Filter.Eq(s => s.FirebaseUid, firebaseUid);
+			var update = Builders<Student>.Update.AddToSet(s => s.Courses, courseId);
+			await _collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+			return;
+		}
+
+		public async Task<bool> StudentIsEnrolledToCourse(string studentFirebaseUid, string courseId, CancellationToken cancellationToken = default)
+		{
+			var filter = Builders<Student>.Filter.And(
+				Builders<Student>.Filter.Eq(s => s.FirebaseUid, studentFirebaseUid),
+				Builders<Student>.Filter.AnyEq(s => s.Courses, courseId)
+			);
+			return await _collection.Find(filter).AnyAsync(cancellationToken);
+		}
+
+        public Task UnEnrollStudentFromCourse(string studentFirebaseUid, string courseId)
+		{
+			var filter = Builders<Student>.Filter.Eq(s => s.FirebaseUid, studentFirebaseUid);
+			var update = Builders<Student>.Update.Pull(s => s.Courses, courseId);
+			return _collection.UpdateOneAsync(filter, update);
+		}
+    }
 }
