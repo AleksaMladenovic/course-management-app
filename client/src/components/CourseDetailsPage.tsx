@@ -52,6 +52,7 @@ const CourseDetailsPage: React.FC = () => {
     const [isAddingLesson, setIsAddingLesson] = useState(false);
     const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
     const [lessonForm, setLessonForm] = useState<DTOAddLesson>({ name: "", description: "", durationInMinutes: 0 });
+    const [selectedLessonForView, setSelectedLessonForView] = useState<any>(null);
 
     const [editForm, setEditForm] = useState<EditCourseForm>({
         name: "",
@@ -270,7 +271,11 @@ const CourseDetailsPage: React.FC = () => {
                         {(isOwner || isEnrolled) ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {course?.lessons?.map((lesson, index) => (
-                                    <div key={lesson.id} className="group flex items-center justify-between bg-white/[0.03] p-6 rounded-3xl border border-white/5 hover:border-blue-500/30 transition-all">
+                                    <div 
+                                        key={lesson.id} 
+                                        onClick={() => setSelectedLessonForView(lesson)} 
+                                        className="group flex items-center justify-between bg-white/[0.03] p-6 rounded-3xl border border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all cursor-pointer" // Promenjen cursor i hover
+                                    >
                                         <div className="flex items-center gap-5">
                                             <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all"><PlayCircle size={24} /></div>
                                             <div><span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em]">Lekcija {index + 1}</span><h3 className="font-bold text-white text-lg">{lesson.name}</h3></div>
@@ -313,6 +318,60 @@ const CourseDetailsPage: React.FC = () => {
                             )}
                         </div>
                     </aside>
+                )}
+
+                {/* MODAL ZA PREGLED DETALJA LEKCIJE */}
+                {selectedLessonForView && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
+                        {/* Pozadina (Backdrop) */}
+                        <div 
+                            className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                            onClick={() => setSelectedLessonForView(null)}
+                        />
+                        
+                        {/* Sadržaj Modala */}
+                        <div className="relative bg-[#141b2d] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                            <div className="absolute top-0 left-0 w-full h-2 bg-blue-600" />
+                            
+                            <div className="p-10 space-y-8">
+                                <div className="flex justify-between items-start">
+                                    <div>
+                                        <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">Pregled Modula</span>
+                                        <h2 className="text-3xl font-black text-white mt-2 uppercase tracking-tighter">
+                                            {selectedLessonForView.name}
+                                        </h2>
+                                    </div>
+                                    <button 
+                                        onClick={() => setSelectedLessonForView(null)}
+                                        className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-white"
+                                    >
+                                        <X size={24} />
+                                    </button>
+                                </div>
+
+                                <div className="flex items-center gap-6 py-4 border-y border-white/5">
+                                    <div className="flex items-center gap-2">
+                                        <Clock size={18} className="text-blue-500" />
+                                        <span className="text-sm font-bold text-gray-300">{selectedLessonForView.durationInMinutes} minuta</span>
+                                    </div>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Opis Sadržaja</h4>
+                                    <p className="text-gray-400 leading-loose text-lg font-light italic">
+                                        "{selectedLessonForView.description || "Nema dodatnog opisa za ovu lekciju."}"
+                                    </p>
+                                </div>
+
+                                <button 
+                                    onClick={() => setSelectedLessonForView(null)}
+                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all uppercase tracking-widest text-xs"
+                                >
+                                    Zatvori pregled
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 )}
             </main>
         </div>
