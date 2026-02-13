@@ -57,5 +57,21 @@ namespace BusinessLayer.Services
             await _studentRepository.UnEnrollStudentFromCourse(studentFirebaseUid, courseId);
             await _courseRepository.UnEnrollStudentFromCourse(courseId, studentFirebaseUid);
         }
+
+        public Task<List<DTOCourseResponse>> GetStudentCourses(string studentFirebaseUid)
+        {
+            List<string> courseIds = _studentRepository.GetStudentCourses(studentFirebaseUid).Result;
+            List<DTOCourseResponse> courses = new List<DTOCourseResponse>();
+            foreach (var courseId in courseIds)
+            {
+                var course = _courseRepository.GetCourseDTOByIdAsync(courseId).Result;
+                if (course != null)
+                {
+                    courses.Add(course);
+                }
+            }
+            return Task.FromResult(courses);
+        }
+
     }
 }
