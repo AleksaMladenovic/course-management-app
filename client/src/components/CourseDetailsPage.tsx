@@ -3,11 +3,16 @@ import { useParams } from "react-router-dom";
 import type { DTOCourseWithLessons } from "../interfaces/DTOCourseWithLessons";
 import api from "../axios";
 import { DificultyTypeToString } from "../enums/DificultyType";
+import { getAuth } from "firebase/auth";
+import { useAuth } from "../context/AuthContext";
 
 const CourseDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const [course, setCourse] = useState<DTOCourseWithLessons>();
-
+    const auth = getAuth();
+    const {user} = useAuth();
+    user?.role
+    auth.currentUser?.uid 
     useEffect(() => {
         const fetchCourse = async () => {
             // Ovde bi išao API poziv da se dobiju detalji kursa po ID-ju
