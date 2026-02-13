@@ -25,4 +25,24 @@ public sealed class StudentController : ControllerBase
         return BadRequest();
     }
 
+    [HttpGet("StudentIsEnrolledToCourse/{studentFirebaseUid}/{courseId}")]
+    public async Task<IActionResult> StudentIsEnrolledToCourse(string studentFirebaseUid, string courseId)
+    {
+        var result = await _studentService.StudentIsEnrolledToCourse(studentFirebaseUid, courseId);
+        return Ok(result);
+    }
+
+    [HttpPost("EnrollStudentToCourse/{studentFirebaseUid}/{courseId}")]
+    public async Task<IActionResult> EnrollStudentToCourse(string studentFirebaseUid, string courseId)
+    {
+        await _studentService.EnrollStudentToCourse(studentFirebaseUid, courseId);
+        return Ok();
+    }
+
+    [HttpPost("UnEnrollStudentFromCourse/{studentFirebaseUid}/{courseId}")]
+    public async Task<IActionResult> UnEnrollStudentFromCourse(string studentFirebaseUid, string courseId)
+    {
+        await _studentService.UnEnrollStudentFromCourse(studentFirebaseUid, courseId);
+        return Ok();
+    }
 }
