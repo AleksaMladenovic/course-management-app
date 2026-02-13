@@ -40,5 +40,19 @@ namespace DatabaseLayer.Repositories
 
         public async Task DeleteAsync(string firebaseUid, CancellationToken cancellationToken = default)
             => await _collection.DeleteOneAsync(author => author.FirebaseUid == firebaseUid, cancellationToken);
+
+        public async Task AddCourseToAuthorAsync(string firebaseUid, string courseId, CancellationToken cancellationToken = default)
+        {
+            var filter = Builders<Author>.Filter.Eq(a => a.FirebaseUid, firebaseUid);
+            var update = Builders<Author>.Update.AddToSet(a => a.Courses, courseId);
+            await _collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
+        }
+
+        public List<string> GetCoursesByAuthorIdAsync(string authorFirebaseUid)
+        {
+            var filter = Builders<Author>.Filter.Eq(a => a.FirebaseUid, authorFirebaseUid);
+            var author = _collection.Find(filter).FirstOrDefault();
+            return author?.Courses ?? new List<string>();
+        }
     }
 }

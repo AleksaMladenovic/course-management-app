@@ -45,4 +45,11 @@ public sealed class StudentController : ControllerBase
         await _studentService.UnEnrollStudentFromCourse(studentFirebaseUid, courseId);
         return Ok();
     }
+
+    [HttpGet("{studentFirebaseUid}/courses")]
+    public async Task<IActionResult> GetStudentCourses(string studentFirebaseUid)
+    {
+        var courses = await _studentService.GetStudentCourses(studentFirebaseUid);
+        return Ok(courses);
+    }
 }

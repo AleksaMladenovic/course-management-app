@@ -14,12 +14,13 @@ namespace CommonLayer.Interfaces
         Task CreateAsync(Course course, CancellationToken cancellationToken = default);
         Task UpdateAsync(ObjectId id, Course course, CancellationToken cancellationToken = default);
         Task DeleteAsync(ObjectId id, CancellationToken cancellationToken = default);
-        Task CreateCourseAsync(DTOAddCourse dto, CancellationToken cancellationToken = default);
+        Task<string> CreateCourseAsync(DTOAddCourse dto, CancellationToken cancellationToken = default);
         Task<bool> UpdateCourseAsync(ObjectId id, DTOUpdateCourse dto, CancellationToken cancellationToken = default);
         Task<bool> DeleteCourseAsync(ObjectId id, CancellationToken cancellationToken = default);
         Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filterDto, CancellationToken cancellationToken = default);
         Task<DTOCourseWithLessons?> GetCourseByIdAsync(string id, CancellationToken cancellationToken = default);
         Task EnrollStudentToCourseAsync(string courseId, string studentFirebaseUid, CancellationToken cancellationToken = default);
         Task UnEnrollStudentFromCourse(string courseId, string studentFirebaseUid);
+        Task<DTOCourseResponse?> GetCourseDTOByIdAsync(string courseId);
     }
 }

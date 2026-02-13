@@ -50,7 +50,7 @@ namespace DatabaseLayer.Repositories
         public Task DeleteAsync(ObjectId id, CancellationToken cancellationToken = default)
             => _collection.DeleteOneAsync(course => course.Id == id, cancellationToken);
 
-        public async Task CreateCourseAsync(DTOAddCourse dto, CancellationToken cancellationToken = default)
+        public async Task<string> CreateCourseAsync(DTOAddCourse dto, CancellationToken cancellationToken = default)
         {
             Author Autor = await this._authorRepository.GetByIdAsync(dto.AuthorFirebaseId, cancellationToken);
 
@@ -65,6 +65,7 @@ namespace DatabaseLayer.Repositories
             };
 
             await _collection.InsertOneAsync(course, null, cancellationToken);
+            return course.Id.ToString();
         }
 
         public async Task<bool> UpdateCourseAsync(ObjectId id, DTOUpdateCourse dto, CancellationToken cancellationToken = default)
@@ -206,6 +207,23 @@ namespace DatabaseLayer.Repositories
             var courseFilter = Builders<Course>.Filter.Eq(c => c.Id, courseObjectId);
             var courseUpdate = Builders<Course>.Update.Pull(c => c.EnrolledStudents, studentFirebaseUid);
             return _collection.UpdateOneAsync(courseFilter, courseUpdate);
+        }
+
+        public async Task<DTOCourseResponse?> GetCourseDTOByIdAsync(string courseId)
+        {
+            var course = await this.GetByIdAsync(new ObjectId(courseId));
+            if (course == null)
+                return null;
+
+            return new DTOCourseResponse
+            {
+                Id = course.Id.ToString(),
+                Name = course.Name,
+                DurationInWeeks = course.DurationInWeeks,
+                Description = course.Description,
+                Difficulty = course.Difficulty,
+                Author = new DTOCourseAuthor { AuthorFirebaseId = course.AuthorFireBaseId, Name = course.Author.Name, Surname = course.Author.Surname }
+            };
         }
     }
 }

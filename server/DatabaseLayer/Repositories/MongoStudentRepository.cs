@@ -64,5 +64,12 @@ namespace DatabaseLayer.Repositories
 			var update = Builders<Student>.Update.Pull(s => s.Courses, courseId);
 			return _collection.UpdateOneAsync(filter, update);
 		}
+
+        public Task<List<string>> GetStudentCourses(string studentFirebaseUid, CancellationToken cancellationToken = default)
+		{
+			var filter = Builders<Student>.Filter.Eq(s => s.FirebaseUid, studentFirebaseUid);
+			var student = _collection.Find(filter).FirstOrDefault(cancellationToken);
+			return Task.FromResult(student?.Courses ?? new List<string>());
+		}
     }
 }

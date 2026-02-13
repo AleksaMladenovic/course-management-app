@@ -15,5 +15,6 @@ namespace CommonLayer.Interfaces
 		Task EnrollStudentToCourse(string firebaseUid, string courseId, CancellationToken cancellationToken = default);
         Task<bool> StudentIsEnrolledToCourse(string studentFirebaseUid, string courseId, CancellationToken cancellationToken = default);
         Task UnEnrollStudentFromCourse(string studentFirebaseUid, string courseId);
+        Task<List<string>> GetStudentCourses(string studentFirebaseUid, CancellationToken cancellationToken = default);
     }
 }

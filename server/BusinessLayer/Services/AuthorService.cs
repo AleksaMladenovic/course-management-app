@@ -11,10 +11,27 @@ namespace BusinessLayer.Services
     public class AuthorService : IAuthorService
     {
         private IAuthorRepository _authorRepository;
+        private ICourseRepository _courseRepository;
 
-        public AuthorService(IAuthorRepository authorRepository)
+        public AuthorService(IAuthorRepository authorRepository, ICourseRepository courseRepository)
         {
             this._authorRepository = authorRepository; 
+            this._courseRepository = courseRepository;
+        }
+
+        public Task<List<DTOCourseResponse>> GetAuthorCourses(string authorFirebaseUid)
+        {
+            List<string> coursesIds = _authorRepository.GetCoursesByAuthorIdAsync(authorFirebaseUid);
+            List<DTOCourseResponse> courses = new List<DTOCourseResponse>();
+            foreach (var courseId in coursesIds)
+            _courseRepository.GetCourseDTOByIdAsync(courseId).ContinueWith(task =>
+            {
+                if (task.Result != null)
+                {
+                    courses.Add((DTOCourseResponse)task.Result);
+                }
+            }).Wait();
+            return Task.FromResult(courses);
         }
 
         public async Task<bool>Register(DTORegisterAuthor author)
