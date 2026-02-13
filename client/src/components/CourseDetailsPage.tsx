@@ -137,8 +137,6 @@ const CourseDetailsPage: React.FC = () => {
         setLessonForm({ name: lesson.name, description: lesson.description, durationInMinutes: lesson.durationInMinutes });
     };
 
-    // --- OSTALE AKCIJE (Course & Enroll) ---
-    // (Zadržavamo handleEnroll, handleUnenroll, handleUpdate, handleDelete iz prethodnog koda)
     const handleEnroll = async () => { /* ... isti kod kao pre ... */ 
         if (!auth.currentUser) return;
         setIsActionLoading(true);
@@ -149,7 +147,7 @@ const CourseDetailsPage: React.FC = () => {
         } catch (error) { alert("Greška pri upisu."); } finally { setIsActionLoading(false); }
     };
 
-    const handleUnenroll = async () => { /* ... isti kod kao pre ... */ 
+    const handleUnenroll = async () => { 
         if (!auth.currentUser || !window.confirm("Ispis sa kursa?")) return;
         setIsActionLoading(true);
         try {
@@ -159,7 +157,7 @@ const CourseDetailsPage: React.FC = () => {
         } catch (error) { alert("Greška pri ispisu."); } finally { setIsActionLoading(false); }
     };
 
-    const handleUpdate = async () => { /* ... isti kod kao pre ... */ 
+    const handleUpdate = async () => { 
         try {
             await api.put(`/Course/updateCourse/${id}`, editForm);
             setCourse(prev => prev ? { ...prev, ...editForm } : prev);
@@ -168,7 +166,7 @@ const CourseDetailsPage: React.FC = () => {
         } catch (error) { alert("Greška prilikom čuvanja."); }
     };
 
-    const handleDelete = async () => { /* ... isti kod kao pre ... */ 
+    const handleDelete = async () => { 
         if (!window.confirm("Obrisati kurs?")) return;
         setIsDeleting(true);
         try {
@@ -198,7 +196,9 @@ const CourseDetailsPage: React.FC = () => {
                                         <span className="px-4 py-1 rounded-lg text-[10px] font-black bg-blue-500 text-white uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20">{course ? DificultyTypeToString[course.difficulty] : ""}</span>
                                         {isOwner && <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-lg">Vaš Kurs</span>}
                                     </div>
-                                    <h1 className="text-5xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">{course?.name}</h1>
+                                    <h1 className="w-full text-left text-5xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">
+                                        {course?.name}
+                                    </h1>
                                 </div>
                             )}
                             <div className="flex flex-wrap gap-y-4 gap-x-10 pt-6 border-t border-white/5">
