@@ -25,4 +25,10 @@ public sealed class AuthorController : ControllerBase
         return BadRequest();
     }
 
+    [HttpGet("{authorFirebaseUid}/courses")]
+    public async Task<IActionResult> GetAuthorCourses(string authorFirebaseUid)
+    {
+        var courses = await _authorService.GetAuthorCourses(authorFirebaseUid);
+        return Ok(courses);
+    }
 }

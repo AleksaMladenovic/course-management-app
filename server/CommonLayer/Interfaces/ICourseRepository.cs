@@ -21,5 +21,6 @@ namespace CommonLayer.Interfaces
         Task<DTOCourseWithLessons?> GetCourseByIdAsync(string id, CancellationToken cancellationToken = default);
         Task EnrollStudentToCourseAsync(string courseId, string studentFirebaseUid, CancellationToken cancellationToken = default);
         Task UnEnrollStudentFromCourse(string courseId, string studentFirebaseUid);
+        Task<DTOCourseResponse?> GetCourseDTOByIdAsync(string courseId);
     }
 }

@@ -6,6 +6,6 @@ namespace CommonLayer.Interfaces
     public interface IAuthorService
     {
         Task<bool> Register(DTORegisterAuthor author);
-        Task<DTOCourseResponse> GetAuthorCourses(string authorFirebaseUid);
+        Task<List<DTOCourseResponse>> GetAuthorCourses(string authorFirebaseUid);
     }
 }

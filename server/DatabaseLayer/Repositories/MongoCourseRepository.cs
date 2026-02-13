@@ -208,5 +208,22 @@ namespace DatabaseLayer.Repositories
             var courseUpdate = Builders<Course>.Update.Pull(c => c.EnrolledStudents, studentFirebaseUid);
             return _collection.UpdateOneAsync(courseFilter, courseUpdate);
         }
+
+        public async Task<DTOCourseResponse?> GetCourseDTOByIdAsync(string courseId)
+        {
+            var course = await this.GetByIdAsync(new ObjectId(courseId));
+            if (course == null)
+                return null;
+
+            return new DTOCourseResponse
+            {
+                Id = course.Id.ToString(),
+                Name = course.Name,
+                DurationInWeeks = course.DurationInWeeks,
+                Description = course.Description,
+                Difficulty = course.Difficulty,
+                Author = new DTOCourseAuthor { AuthorFirebaseId = course.AuthorFireBaseId, Name = course.Author.Name, Surname = course.Author.Surname }
+            };
+        }
     }
 }
