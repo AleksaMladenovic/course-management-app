@@ -17,6 +17,11 @@ namespace BusinessLayer.Services
             this._authorRepository = authorRepository; 
         }
 
+        public Task<DTOCourseResponse> GetAuthorCourses(string authorFirebaseUid)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task<bool>Register(DTORegisterAuthor author)
         {
             try 

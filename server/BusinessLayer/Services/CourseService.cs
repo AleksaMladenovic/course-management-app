@@ -13,15 +13,18 @@ namespace BusinessLayer.Services
     public class CourseService : ICourseService
     {
         private readonly ICourseRepository courseRepository;
+        private readonly IAuthorRepository authorRepository;
         
-        public CourseService(ICourseRepository courseRepository)
+        public CourseService(ICourseRepository courseRepository, IAuthorRepository authorRepository)
         {
             this.courseRepository = courseRepository;
+            this.authorRepository = authorRepository;
         }
 
         public async Task<bool> AddCourseAsync(DTOAddCourse dto)
         {
-            await this.courseRepository.CreateCourseAsync(dto);
+            string courseId = await this.courseRepository.CreateCourseAsync(dto);
+            await this.authorRepository.AddCourseToAuthorAsync(dto.AuthorFirebaseId, courseId);
             return true;
         }
 
@@ -44,6 +47,7 @@ namespace BusinessLayer.Services
         public async Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filter)
         {
             var result = await courseRepository.GetCoursesAsync(filter);
+
             return result;
         }
     }

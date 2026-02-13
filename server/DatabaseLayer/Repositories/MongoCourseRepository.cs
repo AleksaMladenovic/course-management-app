@@ -50,7 +50,7 @@ namespace DatabaseLayer.Repositories
         public Task DeleteAsync(ObjectId id, CancellationToken cancellationToken = default)
             => _collection.DeleteOneAsync(course => course.Id == id, cancellationToken);
 
-        public async Task CreateCourseAsync(DTOAddCourse dto, CancellationToken cancellationToken = default)
+        public async Task<string> CreateCourseAsync(DTOAddCourse dto, CancellationToken cancellationToken = default)
         {
             Author Autor = await this._authorRepository.GetByIdAsync(dto.AuthorFirebaseId, cancellationToken);
 
@@ -65,6 +65,7 @@ namespace DatabaseLayer.Repositories
             };
 
             await _collection.InsertOneAsync(course, null, cancellationToken);
+            return course.Id.ToString();
         }
 
         public async Task<bool> UpdateCourseAsync(ObjectId id, DTOUpdateCourse dto, CancellationToken cancellationToken = default)
