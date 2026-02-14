@@ -24,7 +24,7 @@ const Login = () => {
             const userData: DTOReturnLoginUserData = (await api.post(`/User/login?firebaseUid=${user.uid}`)).data;
             console.log("User data from backend:", userData);
             login(userData);
-            navigate("/all-courses");
+            navigate("/");
         } catch (err) {
             setError("Pogrešan email ili lozinka.");
         }

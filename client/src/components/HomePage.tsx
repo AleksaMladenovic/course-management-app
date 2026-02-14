@@ -52,7 +52,7 @@ const HomePage = () => {
                     ) : (
                         <>
                             <button
-                                onClick={() => navigate("/all-courses")}
+                                onClick={() => navigate("/home")}
                                 className="group flex items-center justify-center gap-4 bg-blue-600 text-white px-12 py-6 rounded-[2rem] transition-all duration-500 font-black uppercase text-xs tracking-[0.2em] shadow-2xl min-w-[240px] active:scale-95">
                                 Explore Courses
                             </button>

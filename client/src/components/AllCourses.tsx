@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import Pagination from "./Pagination";
 import CourseCard from "./CourseCard";
 import AllCoursesFilter, { type AllCoursesFilterProps } from "./AllCoursesFilter";
@@ -16,17 +16,46 @@ interface CourseFilterWithPaginationProps extends AllCoursesFilterProps {
 
 
 const totalCoursesOnPage = 8;
+const allCoursesParamsKey = "allCoursesSearchParams";
 
 const AllCourses = () => {
     const [courses, setCourses] = useState<DTOCourseResponse[]>();
     const [totalCourses, setTotalCourses] = useState(0);
     const [searchParams, setSearchParams] = useSearchParams();
+    const [isRestoring, setIsRestoring] = useState(true);
 
     const currentPage = Number(searchParams.get("page")) || 1;
 
     const totalPages = Math.ceil(totalCourses / totalCoursesOnPage);
 
     useEffect(() => {
+        const hasParams = searchParams.toString() !== "";
+        const savedParams = sessionStorage.getItem(allCoursesParamsKey);
+
+        if (!hasParams && savedParams) {
+            setSearchParams(savedParams);
+            return;
+        }
+
+        setIsRestoring(false);
+    }, [searchParams, setSearchParams]);
+
+    useEffect(() => {
+        const rawParams = searchParams.toString();
+
+        if (rawParams === "") {
+            sessionStorage.removeItem(allCoursesParamsKey);
+            return;
+        }
+
+        sessionStorage.setItem(allCoursesParamsKey, rawParams);
+    }, [searchParams]);
+
+    useEffect(() => {
+        if (isRestoring) {
+            return;
+        }
+
         const fetchData = async () => {
             const filter: CourseFilterWithPaginationProps = {
                 name: searchParams.get("name") || "",
@@ -43,7 +72,7 @@ const AllCourses = () => {
             setCourses(response.items);
         };
         fetchData();
-    }, [searchParams]);
+    }, [searchParams, isRestoring]);
 
     // Kada korisnik primeni filter
     const onApplyFilter = (props: AllCoursesFilterProps) => {
