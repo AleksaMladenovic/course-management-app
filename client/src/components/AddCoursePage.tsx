@@ -29,9 +29,8 @@ const AddCoursePage = () => {
     const onAddCourse = async (courseData: DTOAddCourse) => {
         setLoading(true);
         try {
-            await api.post("Course/addCourse", courseData);
-            alert("Kurs je uspešno kreiran!");
-            navigate("/all-courses");
+            const courseID = (await api.post("Course/addCourse", courseData)).data;
+            navigate("/course/" + courseID);
         } catch (error) {
             console.error("Error adding course:", error);
             alert("Došlo je do greške pri kreiranju kursa.");

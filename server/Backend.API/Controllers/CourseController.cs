@@ -19,12 +19,15 @@ namespace Backend.API.Controllers
         [HttpPost("addCourse")]
         public async Task<IActionResult> AddCourse([FromBody] DTOAddCourse dto)
         {
-            var result = await courseService.AddCourseAsync(dto);
-            if (result)
+            try
             {
-                return Ok("Uspesno dodat kurs");
+                string courseId = await courseService.AddCourseAsync(dto);
+                return Ok(courseId);
             }
-            return BadRequest("Ne uspesno dodat kurs");
+            catch (Exception ex)
+            {
+                return BadRequest("Neuspešno dodat kurs: " + ex.Message);
+            }
         }
         [HttpPut("updateCourse/{id}")]
         public async Task<IActionResult> UpdateCourse(string id, [FromBody] DTOUpdateCourse dto)

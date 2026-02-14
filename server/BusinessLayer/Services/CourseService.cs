@@ -21,11 +21,11 @@ namespace BusinessLayer.Services
             this.authorRepository = authorRepository;
         }
 
-        public async Task<bool> AddCourseAsync(DTOAddCourse dto)
+        public async Task<string> AddCourseAsync(DTOAddCourse dto)
         {
             string courseId = await this.courseRepository.CreateCourseAsync(dto);
             await this.authorRepository.AddCourseToAuthorAsync(dto.AuthorFirebaseId, courseId);
-            return true;
+            return courseId;
         }
 
         public async Task<DTOCourseWithLessons?> GetCourseByIdAsync(string id)

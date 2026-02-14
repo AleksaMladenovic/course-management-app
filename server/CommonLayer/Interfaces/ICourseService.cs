@@ -10,7 +10,7 @@ namespace CommonLayer.Interfaces
 {
     public interface ICourseService
     {
-        public Task<bool> AddCourseAsync(DTOAddCourse dto);
+        public Task<string> AddCourseAsync(DTOAddCourse dto);
         Task<bool> UpdateCourseAsync(string id, DTOUpdateCourse dto);
         Task<bool> DeleteCourseAsync(string id);
         public Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filter);
