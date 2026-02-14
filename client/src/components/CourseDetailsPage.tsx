@@ -3,15 +3,15 @@ import { useParams, useNavigate } from "react-router-dom";
 import type { DTOCourseWithLessons } from "../interfaces/DTOCourseWithLessons";
 import api from "../axios";
 import { DificultyTypeToString, type DificultyType } from "../enums/DificultyType";
-import type{DTOAddLesson} from "../interfaces/DTOAddLesson";
+import type { DTOAddLesson } from "../interfaces/DTOAddLesson";
 import { useAuth } from "../context/AuthContext";
-import { 
-    Clock, 
-    BarChart, 
-    User, 
-    BookOpen, 
-    ChevronLeft, 
-    Edit3, 
+import {
+    Clock,
+    BarChart,
+    User,
+    BookOpen,
+    ChevronLeft,
+    Edit3,
     PlayCircle,
     Trash2,
     AlertCircle,
@@ -22,8 +22,9 @@ import {
     Layers,
     LogOut,
     Plus, // Dodato
-    Pencil // Dodato
-} from "lucide-react"; 
+    Pencil, // Dodato
+    Signal
+} from "lucide-react";
 import { getAuth } from "firebase/auth";
 import RoleType from "../enums/RoleType";
 
@@ -39,12 +40,12 @@ interface EditCourseForm {
 const CourseDetailsPage: React.FC = () => {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
-    
+
     const [course, setCourse] = useState<DTOCourseWithLessons>();
     const [loading, setLoading] = useState(true);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isEditingMode, setIsEditingMode] = useState(false);
-    
+
     const [isEnrolled, setIsEnrolled] = useState<boolean>(false);
     const [isActionLoading, setIsActionLoading] = useState(false);
 
@@ -58,7 +59,7 @@ const CourseDetailsPage: React.FC = () => {
         name: "",
         description: "",
         durationInWeeks: 0,
-        difficulty: 0 as DificultyType 
+        difficulty: 0 as DificultyType
     });
 
     const { user } = useAuth();
@@ -93,7 +94,7 @@ const CourseDetailsPage: React.FC = () => {
 
     const isOwner = auth.currentUser?.uid === course?.author.authorFirebaseId;
     const isStudent = user?.role === RoleType.Student;
-    const showSidebar = isStudent && !isOwner; 
+    const showSidebar = isStudent && !isOwner;
 
     // --- LEKCIJE: BACKEND AKCIJE ---
 
@@ -137,7 +138,7 @@ const CourseDetailsPage: React.FC = () => {
         setLessonForm({ name: lesson.name, description: lesson.description, durationInMinutes: lesson.durationInMinutes });
     };
 
-    const handleEnroll = async () => { /* ... isti kod kao pre ... */ 
+    const handleEnroll = async () => { /* ... isti kod kao pre ... */
         if (!auth.currentUser) return;
         setIsActionLoading(true);
         try {
@@ -147,7 +148,7 @@ const CourseDetailsPage: React.FC = () => {
         } catch (error) { alert("Greška pri upisu."); } finally { setIsActionLoading(false); }
     };
 
-    const handleUnenroll = async () => { 
+    const handleUnenroll = async () => {
         if (!auth.currentUser || !window.confirm("Ispis sa kursa?")) return;
         setIsActionLoading(true);
         try {
@@ -157,8 +158,12 @@ const CourseDetailsPage: React.FC = () => {
         } catch (error) { alert("Greška pri ispisu."); } finally { setIsActionLoading(false); }
     };
 
-    const handleUpdate = async () => { 
+    const handleUpdate = async () => {
         try {
+            if (editIsSameAsOriginal()) {
+                setIsEditingMode(false);
+                return;
+            }
             await api.put(`/Course/updateCourse/${id}`, editForm);
             setCourse(prev => prev ? { ...prev, ...editForm } : prev);
             setIsEditingMode(false);
@@ -166,7 +171,13 @@ const CourseDetailsPage: React.FC = () => {
         } catch (error) { alert("Greška prilikom čuvanja."); }
     };
 
-    const handleDelete = async () => { 
+    const editIsSameAsOriginal = () => {
+        return editForm.name === course?.name &&
+            editForm.description === course?.description &&
+            editForm.durationInWeeks === course?.durationInWeeks &&
+            editForm.difficulty === course?.difficulty;
+    }
+    const handleDelete = async () => {
         if (!window.confirm("Obrisati kurs?")) return;
         setIsDeleting(true);
         try {
@@ -189,7 +200,7 @@ const CourseDetailsPage: React.FC = () => {
                     <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
                         <div className="flex-1 space-y-6">
                             {isEditingMode ? (
-                                <input className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-4xl font-black text-white focus:border-blue-500 outline-none" value={editForm.name} onChange={(e) => setEditForm({...editForm, name: e.target.value})} />
+                                <input className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-4xl font-black text-white focus:border-blue-500 outline-none" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
                             ) : (
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
@@ -202,30 +213,93 @@ const CourseDetailsPage: React.FC = () => {
                                 </div>
                             )}
                             <div className="flex flex-wrap gap-y-4 gap-x-10 pt-6 border-t border-white/5">
-                                <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20"><Clock size={20} /></div><div><p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Trajanje</p><p className="text-sm font-bold">{course?.durationInWeeks} nedelja</p></div></div>
-                                <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20"><Layers size={20} /></div><div><p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Lekcije</p><p className="text-sm font-bold">{course?.lessons?.length || 0} lekcija</p></div></div>
-                                <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20"><User size={20} /></div><div><p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Autor</p><p className="text-sm font-bold">{course?.author.name} {course?.author.surname}</p></div></div>
+                                <>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-400 border border-blue-500/20"><Clock size={20} />
+                                        </div>
+                                        {!isEditingMode ? (
+                                            <div>
+                                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Trajanje</p>
+                                                <p className="text-sm font-bold">{course?.durationInWeeks} nedelja</p>
+                                            </div>
+                                        ) :
+                                            (
+                                                <div>
+                                                    <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Trajanje</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <input className="w-11 h-10 text-center bg-white/5 border border-white/10 rounded-2xl text-sm font-black text-white focus:border-blue-500 outline-none" type="number" value={editForm.durationInWeeks} onChange={(e) => setEditForm({ ...editForm, durationInWeeks: Number(e.target.value) })} />
+                                                        <p className="text-sm font-bold">nedelja</p>
+                                                    </div>
+                                                </div>
+                                            )
+                                        }
+
+
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-emerald-500/10 flex items-center justify-center text-emerald-400 border border-emerald-500/20">
+                                            <Layers size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Lekcije</p>
+                                            <p className="text-sm font-bold">{course?.lessons?.length || 0} lekcija</p>
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 rounded-xl bg-purple-500/10 flex items-center justify-center text-purple-400 border border-purple-500/20">
+                                            <User size={20} />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Autor</p>
+                                            <p className="text-sm font-bold">{course?.author.name} {course?.author.surname}</p>
+                                        </div>
+                                    </div>
+                                    {isEditingMode && (
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center text-red-400 border border-red-500/20">
+                                                <Signal size={20} />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Težina</p>
+                                                <select className="w-full bg-white/5 border border-white/10 rounded-2xl p-3 text-white outline-none focus:border-blue-500" value={editForm.difficulty} onChange={(e) => setEditForm({ ...editForm, difficulty: Number(e.target.value) as DificultyType })}>
+                                                    {Object.entries(DificultyTypeToString).map(([key, value]) => (
+                                                        <option key={key} value={key} selected={editForm.difficulty.toString() === key} className="bg-[#141b2d] text-gray-200">
+                                                            {value}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    )}
+                                </>
                             </div>
+
                         </div>
                         {isOwner && (
                             <div className="flex gap-4 mb-2">
                                 {isEditingMode ? (
                                     <><button onClick={handleUpdate} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20"><Save size={18} /> Sačuvaj</button><button onClick={() => setIsEditingMode(false)} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest"><X size={18} /> Odustani</button></>
                                 ) : (
-                                    <><button onClick={() => setIsEditingMode(true)} className="flex items-center gap-2 bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest shadow-xl shadow-white/10"><Edit3 size={18} /> Uredi</button><button onClick={handleDelete} disabled={isDeleting} className="border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest"><Trash2 size={18} /></button></>
+                                    <>
+                                        <button onClick={() => setIsEditingMode(true)} className="flex items-center gap-2 bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest shadow-xl shadow-white/10"><Edit3 size={18} />
+                                            Uredi
+                                        </button>
+                                        <button onClick={handleDelete} disabled={isDeleting} className="border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest">
+                                            <Trash2 size={18} />
+                                        </button></>
                                 )}
                             </div>
                         )}
                     </div>
-                </div>
-            </div>
+                </div >
+            </div >
 
             <main className={`max-w-[1400px] mx-auto px-6 md:px-12 mt-16 grid grid-cols-1 ${showSidebar ? 'xl:grid-cols-3' : 'grid-cols-1'} gap-16`}>
                 <div className={showSidebar ? "xl:col-span-2 space-y-20" : "w-full space-y-20"}>
                     <section>
                         <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-[0.2em] mb-8 border-l-4 border-blue-500 pl-4">Pregled Kursa</h2>
                         <div className="bg-white/[0.02] border border-white/5 p-8 md:p-12 rounded-[2.5rem] shadow-2xl">
-                            {isEditingMode ? <textarea className="w-full bg-black/20 border border-white/10 rounded-2xl p-6 text-gray-300 min-h-[300px] outline-none focus:border-blue-500 text-lg font-light leading-relaxed" value={editForm.description} onChange={(e) => setEditForm({...editForm, description: e.target.value})} /> : <p className="text-gray-400 leading-loose text-xl font-light">{course?.description}</p>}
+                            {isEditingMode ? <textarea className="w-full bg-black/20 border border-white/10 rounded-2xl p-6 text-gray-300 min-h-[300px] outline-none focus:border-blue-500 text-lg font-light leading-relaxed" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} /> : <p className="text-gray-400 leading-loose text-xl font-light">{course?.description}</p>}
                         </div>
                     </section>
 
@@ -247,19 +321,19 @@ const CourseDetailsPage: React.FC = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Naslov</label>
-                                        <input className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" value={lessonForm.name} onChange={(e) => setLessonForm({...lessonForm, name: e.target.value})} />
+                                        <input className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" value={lessonForm.name} onChange={(e) => setLessonForm({ ...lessonForm, name: e.target.value })} />
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Trajanje (min)</label>
-                                        <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" value={lessonForm.durationInMinutes} onChange={(e) => setLessonForm({...lessonForm, durationInMinutes: parseInt(e.target.value)})} />
+                                        <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" value={lessonForm.durationInMinutes} onChange={(e) => setLessonForm({ ...lessonForm, durationInMinutes: parseInt(e.target.value) })} />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Opis lekcije</label>
-                                    <textarea className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 min-h-[100px]" value={lessonForm.description} onChange={(e) => setLessonForm({...lessonForm, description: e.target.value})} />
+                                    <textarea className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 min-h-[100px]" value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} />
                                 </div>
                                 <div className="flex gap-3 justify-end pt-4">
-                                    <button onClick={() => { setIsAddingLesson(false); setEditingLessonId(null); setLessonForm({name:"", description:"", durationInMinutes:0})}} className="text-xs font-bold text-gray-500 px-4 py-2">Odustani</button>
+                                    <button onClick={() => { setIsAddingLesson(false); setEditingLessonId(null); setLessonForm({ name: "", description: "", durationInMinutes: 0 }) }} className="text-xs font-bold text-gray-500 px-4 py-2">Odustani</button>
                                     <button onClick={editingLessonId ? handleUpdateLesson : handleAddLesson} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
                                         {editingLessonId ? "Sačuvaj izmene" : "Potvrdi"}
                                     </button>
@@ -271,9 +345,9 @@ const CourseDetailsPage: React.FC = () => {
                         {(isOwner || isEnrolled) ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 {course?.lessons?.map((lesson, index) => (
-                                    <div 
-                                        key={lesson.id} 
-                                        onClick={() => setSelectedLessonForView(lesson)} 
+                                    <div
+                                        key={lesson.id}
+                                        onClick={() => setSelectedLessonForView(lesson)}
                                         className="group flex items-center justify-between bg-white/[0.03] p-6 rounded-3xl border border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all cursor-pointer" // Promenjen cursor i hover
                                     >
                                         <div className="flex items-center gap-5">
@@ -324,15 +398,15 @@ const CourseDetailsPage: React.FC = () => {
                 {selectedLessonForView && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 animate-in fade-in duration-300">
                         {/* Pozadina (Backdrop) */}
-                        <div 
+                        <div
                             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
                             onClick={() => setSelectedLessonForView(null)}
                         />
-                        
+
                         {/* Sadržaj Modala */}
                         <div className="relative bg-[#141b2d] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                             <div className="absolute top-0 left-0 w-full h-2 bg-blue-600" />
-                            
+
                             <div className="p-10 space-y-8">
                                 <div className="flex justify-between items-start">
                                     <div>
@@ -341,7 +415,7 @@ const CourseDetailsPage: React.FC = () => {
                                             {selectedLessonForView.name}
                                         </h2>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={() => setSelectedLessonForView(null)}
                                         className="p-2 hover:bg-white/5 rounded-full transition-colors text-gray-500 hover:text-white"
                                     >
@@ -363,7 +437,7 @@ const CourseDetailsPage: React.FC = () => {
                                     </p>
                                 </div>
 
-                                <button 
+                                <button
                                     onClick={() => setSelectedLessonForView(null)}
                                     className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all uppercase tracking-widest text-xs"
                                 >
@@ -374,7 +448,7 @@ const CourseDetailsPage: React.FC = () => {
                     </div>
                 )}
             </main>
-        </div>
+        </div >
     );
 }
 
