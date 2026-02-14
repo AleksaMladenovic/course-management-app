@@ -1,16 +1,22 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import RoleType from "../enums/RoleType";
-import { User, Mail, Shield, Settings, Calendar, Award } from "lucide-react";
+import { User, Mail, Shield, Settings } from "lucide-react";
 import type { DTOAuthorStats } from "../interfaces/DTOAuthorStats";
 import api from "../axios";
-import { getAuth } from "firebase/auth";
+import { EmailAuthProvider, getAuth, reauthenticateWithCredential, updatePassword } from "firebase/auth";
 import type DTOStudentsStats from "../interfaces/DTOStudentsStats";
 
 const MyProfile = () => {
     const { user } = useAuth();
     const [authorStats, setAuthorStats] = useState<DTOAuthorStats  | null>(null);
     const [studentStats, setStudentStats] = useState<DTOStudentsStats | null>(null);
+    const [isSettingsOpen, setIsSettingsOpen] = useState<boolean>(false);
+    const [currentPassword, setCurrentPassword] = useState<string>("");
+    const [newPassword, setNewPassword] = useState<string>("");
+    const [confirmPassword, setConfirmPassword] = useState<string>("");
+    const [isUpdatingPassword, setIsUpdatingPassword] = useState<boolean>(false);
+    const [passwordMessage, setPasswordMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
     useEffect(() => {
         if (user !== null && user.role === RoleType.Author) {
@@ -23,6 +29,61 @@ const MyProfile = () => {
                 .catch((error) => console.error("Error fetching student stats:", error));
         }
     }, [user]);
+
+    const handleChangePassword = async () => {
+        setPasswordMessage(null);
+
+        if (!currentPassword || !newPassword || !confirmPassword) {
+            setPasswordMessage({ type: "error", text: "Popunite sva polja za promenu šifre." });
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setPasswordMessage({ type: "error", text: "Nova šifra i potvrda se ne poklapaju." });
+            return;
+        }
+
+        if (newPassword.length < 6) {
+            setPasswordMessage({ type: "error", text: "Nova šifra mora imati najmanje 6 karaktera." });
+            return;
+        }
+
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+
+        if (!currentUser || !currentUser.email) {
+            setPasswordMessage({ type: "error", text: "Korisnik nije prijavljen. Pokušajte ponovo." });
+            return;
+        }
+
+        setIsUpdatingPassword(true);
+
+        try {
+            const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+            await reauthenticateWithCredential(currentUser, credential);
+            await updatePassword(currentUser, newPassword);
+
+            setCurrentPassword("");
+            setNewPassword("");
+            setConfirmPassword("");
+            setPasswordMessage({ type: "success", text: "Šifra je uspešno promenjena." });
+        } catch (error: any) {
+            const errorCode = error?.code as string | undefined;
+
+            if (errorCode === "auth/wrong-password" || errorCode === "auth/invalid-credential") {
+                setPasswordMessage({ type: "error", text: "Trenutna šifra nije ispravna." });
+            } else if (errorCode === "auth/too-many-requests") {
+                setPasswordMessage({ type: "error", text: "Previše pokušaja. Pokušajte ponovo za par minuta." });
+            } else if (errorCode === "auth/requires-recent-login") {
+                setPasswordMessage({ type: "error", text: "Potrebna je ponovna prijava pre promene šifre." });
+            } else {
+                setPasswordMessage({ type: "error", text: "Došlo je do greške pri promeni šifre." });
+            }
+        } finally {
+            setIsUpdatingPassword(false);
+        }
+    };
+
     return (
         <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* --- HEADER SEKCIJA --- */}
@@ -50,9 +111,62 @@ const MyProfile = () => {
                         </p>
 
                         <div className="w-full pt-8 border-t border-white/5 flex flex-col gap-3">
-                            <button className="w-full bg-white/5 hover:bg-white/10 text-white py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                            <button
+                                onClick={() => setIsSettingsOpen((prev) => !prev)}
+                                className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 border ${
+                                    isSettingsOpen
+                                        ? "bg-blue-600/10 border-blue-500/30 text-blue-300"
+                                        : "bg-white/5 hover:bg-white/10 border-white/10 text-white"
+                                }`}
+                            >
                                 <Settings size={14} /> Podešavanja
                             </button>
+
+                            {isSettingsOpen && (
+                                <div className="w-full mt-2 p-4 rounded-2xl border border-white/10 bg-black/20 text-left space-y-3">
+                                    <p className="text-[9px] font-black uppercase tracking-[0.2em] text-gray-400">Promena šifre</p>
+
+                                    <input
+                                        type="password"
+                                        value={currentPassword}
+                                        onChange={(e) => setCurrentPassword(e.target.value)}
+                                        placeholder="Trenutna šifra"
+                                        className="w-full bg-black/30 border border-white/10 rounded-xl py-3 px-4 text-xs text-white placeholder:text-gray-600 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                                    />
+
+                                    <input
+                                        type="password"
+                                        value={newPassword}
+                                        onChange={(e) => setNewPassword(e.target.value)}
+                                        placeholder="Nova šifra"
+                                        className="w-full bg-black/30 border border-white/10 rounded-xl py-3 px-4 text-xs text-white placeholder:text-gray-600 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                                    />
+
+                                    <input
+                                        type="password"
+                                        value={confirmPassword}
+                                        onChange={(e) => setConfirmPassword(e.target.value)}
+                                        placeholder="Potvrda nove šifre"
+                                        className="w-full bg-black/30 border border-white/10 rounded-xl py-3 px-4 text-xs text-white placeholder:text-gray-600 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
+                                    />
+
+                                    {passwordMessage && (
+                                        <p className={`text-[10px] font-black uppercase tracking-wider ${
+                                            passwordMessage.type === "success" ? "text-emerald-400" : "text-red-400"
+                                        }`}>
+                                            {passwordMessage.text}
+                                        </p>
+                                    )}
+
+                                    <button
+                                        onClick={handleChangePassword}
+                                        disabled={isUpdatingPassword}
+                                        className="w-full bg-blue-600 hover:bg-blue-500 text-white py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        {isUpdatingPassword ? "Čuvanje..." : "Sačuvaj novu šifru"}
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -124,12 +238,5 @@ const MyProfile = () => {
         </div>
     );
 };
-
-// Mali pomoćni UI element za kvačicu
-const CheckCircleIcon = () => (
-    <div className="w-5 h-5 rounded-full bg-emerald-500/20 flex items-center justify-center">
-        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]" />
-    </div>
-);
 
 export default MyProfile;
