@@ -111,6 +111,11 @@ const CourseDetailsPage: React.FC = () => {
     };
 
     const handleUpdateLesson = async () => {
+        if (isChangingLessonSameAsOriginal()) {
+            setEditingLessonId(null);
+            setLessonForm({ name: "", description: "", durationInMinutes: 0 });
+            return;
+        }
         if (!editingLessonId) return;
         try {
             await api.put(`/Lessons/updateLesson/${id}/${editingLessonId}`, lessonForm);
@@ -123,6 +128,14 @@ const CourseDetailsPage: React.FC = () => {
         }
     };
 
+    const isChangingLessonSameAsOriginal = () => {
+        if (!editingLessonId || !course) return true;
+        const originalLesson = course.lessons.find(lesson => lesson.id === editingLessonId);
+        if (!originalLesson) return true;
+        return lessonForm.name === originalLesson.name &&
+            lessonForm.description === originalLesson.description &&
+            lessonForm.durationInMinutes === originalLesson.durationInMinutes;
+    }
     const handleDeleteLesson = async (lessonId: string) => {
         if (!window.confirm("Da li sigurno želite da obrišete ovu lekciju?")) return;
         try {
@@ -358,8 +371,24 @@ const CourseDetailsPage: React.FC = () => {
                                             <span className="text-xs font-mono text-gray-500">{lesson.durationInMinutes} min</span>
                                             {isOwner && (
                                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <button onClick={() => startEditingLesson(lesson)} className="p-2 text-gray-400 hover:text-blue-400 transition-colors"><Pencil size={16} /></button>
-                                                    <button onClick={() => handleDeleteLesson(lesson.id)} className="p-2 text-gray-400 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                                                    <button
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            startEditingLesson(lesson);
+                                                        }}
+                                                        className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                                                    >
+                                                        <Pencil size={16} />
+                                                    </button>
+                                                    <button
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            handleDeleteLesson(lesson.id);
+                                                        }}
+                                                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                                    >
+                                                        <Trash2 size={16} />
+                                                    </button>
                                                 </div>
                                             )}
                                         </div>
