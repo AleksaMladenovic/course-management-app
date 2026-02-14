@@ -1,10 +1,28 @@
+import { useEffect, useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import RoleType from "../enums/RoleType";
 import { User, Mail, Shield, Settings, Calendar, Award } from "lucide-react";
+import type { DTOAuthorStats } from "../interfaces/DTOAuthorStats";
+import api from "../axios";
+import { getAuth } from "firebase/auth";
+import type DTOStudentsStats from "../interfaces/DTOStudentsStats";
 
 const MyProfile = () => {
     const { user } = useAuth();
+    const [authorStats, setAuthorStats] = useState<DTOAuthorStats  | null>(null);
+    const [studentStats, setStudentStats] = useState<DTOStudentsStats | null>(null);
 
+    useEffect(() => {
+        if (user !== null && user.role === RoleType.Author) {
+            api.get<DTOAuthorStats>(`/Author/${getAuth().currentUser?.uid}/stats`)
+                .then((response) => setAuthorStats(response.data))
+                .catch((error) => console.error("Error fetching author stats:", error));
+        } else if (user !== null && user.role === RoleType.Student) {
+            api.get<DTOStudentsStats>(`/Student/${getAuth().currentUser?.uid}/stats`)
+                .then((response) => setStudentStats(response.data))
+                .catch((error) => console.error("Error fetching student stats:", error));
+        }
+    }, [user]);
     return (
         <div className="w-full animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* --- HEADER SEKCIJA --- */}
@@ -14,13 +32,13 @@ const MyProfile = () => {
             </div>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                
+
                 {/* --- LEVA KOLONA: AVATAR & OSNOVNO --- */}
                 <div className="xl:col-span-1">
                     <div className="bg-[#141b2d] border border-white/5 p-10 rounded-[3rem] shadow-2xl flex flex-col items-center text-center relative overflow-hidden group">
                         {/* Glow u pozadini */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" />
-                        
+
                         {/* Avatar / Inicijali */}
                         <div className="w-32 h-32 rounded-[2.5rem] bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center text-white text-4xl font-black shadow-2xl mb-6 border-4 border-white/5 transition-transform duration-500 group-hover:scale-105">
                             {user?.name?.charAt(0).toUpperCase()}
@@ -43,9 +61,9 @@ const MyProfile = () => {
                 <div className="xl:col-span-2">
                     <div className="bg-[#141b2d] border border-white/5 p-10 md:p-14 rounded-[3rem] shadow-2xl h-full">
                         <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] mb-10 ml-2">Informacije o nalogu</h4>
-                        
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                            
+
                             {/* IME */}
                             <div className="space-y-3">
                                 <div className="flex items-center gap-2 text-[10px] font-black text-blue-500 uppercase tracking-widest">
@@ -80,16 +98,26 @@ const MyProfile = () => {
                         </div>
 
                         {/* DODATNA SEKCIJA ZA STATISTIKU (PLACEHOLDER) */}
-                        <div className="mt-16 grid grid-cols-2 gap-4 pt-10 border-t border-white/5">
-                            <div className="text-center">
-                                <p className="text-2xl font-black text-white">3</p>
-                                <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-1">Kurseva</p>
+                        {user?.role === RoleType.Author && (
+                            <div className="mt-16 grid grid-cols-2 gap-4 pt-10 border-t border-white/5">
+                                <div className="text-center">
+                                    <p className="text-2xl font-black text-white">{authorStats?.totalCourses ?? 0}</p>
+                                    <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-1">Kurseva</p>
+                                </div>
+                                <div className="text-center border-x border-white/5">
+                                    <p className="text-2xl font-black text-white">{authorStats?.totalStudents ?? 0}</p>
+                                    <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-1">Studenata</p>
+                                </div>
+                            </div>)
+                        }
+                        {user?.role === RoleType.Student && (
+                            <div className="mt-16 grid pt-10 border-t border-white/5">
+                                <div className="text-center">
+                                    <p className="text-2xl font-black text-white">{studentStats?.totalCourses ?? 0}</p>
+                                    <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-1">Kurseva</p>
+                                </div>
                             </div>
-                            <div className="text-center border-x border-white/5">
-                                <p className="text-2xl font-black text-white">15</p>
-                                <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mt-1">Studenata</p>
-                            </div>
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

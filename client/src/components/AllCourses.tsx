@@ -15,7 +15,7 @@ interface CourseFilterWithPaginationProps extends AllCoursesFilterProps {
 }
 
 
-const totalCoursesOnPage = 4;
+const totalCoursesOnPage = 8;
 
 const AllCourses = () => {
     const [courses, setCourses] = useState<DTOCourseResponse[]>();

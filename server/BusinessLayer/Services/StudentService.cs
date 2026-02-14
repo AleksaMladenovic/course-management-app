@@ -73,5 +73,13 @@ namespace BusinessLayer.Services
             return Task.FromResult(courses);
         }
 
+        public Task<DTOStudentsStats> GetStudentStats(string studentFirebaseUid)
+        {
+            List<string> courseIds = _studentRepository.GetStudentCourses(studentFirebaseUid).Result;
+            return Task.FromResult(new DTOStudentsStats
+            {
+                TotalCourses = courseIds.Count
+            });
+        }
     }
 }

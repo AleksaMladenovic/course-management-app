@@ -31,4 +31,11 @@ public sealed class AuthorController : ControllerBase
         var courses = await _authorService.GetAuthorCourses(authorFirebaseUid);
         return Ok(courses);
     }
+
+    [HttpGet("{authorFirebaseUid}/stats")]
+    public async Task<IActionResult> GetAuthorStats(string authorFirebaseUid)
+    {
+        var stats = await _authorService.GetAuthorStats(authorFirebaseUid);
+        return Ok(stats);
+    }
 }

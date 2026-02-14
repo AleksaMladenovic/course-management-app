@@ -201,17 +201,17 @@ namespace DatabaseLayer.Repositories
             }
         }
 
-        public Task UnEnrollStudentFromCourse(string courseId, string studentFirebaseUid)
+        public Task UnEnrollStudentFromCourse(string courseId, string studentFirebaseUid, CancellationToken cancellationToken = default)
         {
             var courseObjectId = new ObjectId(courseId);
             var courseFilter = Builders<Course>.Filter.Eq(c => c.Id, courseObjectId);
             var courseUpdate = Builders<Course>.Update.Pull(c => c.EnrolledStudents, studentFirebaseUid);
-            return _collection.UpdateOneAsync(courseFilter, courseUpdate);
+            return _collection.UpdateOneAsync(courseFilter, courseUpdate, cancellationToken: cancellationToken);
         }
 
-        public async Task<DTOCourseResponse?> GetCourseDTOByIdAsync(string courseId)
+        public async Task<DTOCourseResponse?> GetCourseDTOByIdAsync(string courseId, CancellationToken cancellationToken = default)
         {
-            var course = await this.GetByIdAsync(new ObjectId(courseId));
+            var course = await this.GetByIdAsync(new ObjectId(courseId), cancellationToken);
             if (course == null)
                 return null;
 
@@ -224,6 +224,14 @@ namespace DatabaseLayer.Repositories
                 Difficulty = course.Difficulty,
                 Author = new DTOCourseAuthor { AuthorFirebaseId = course.AuthorFireBaseId, Name = course.Author.Name, Surname = course.Author.Surname }
             };
+        }
+
+        public async Task<List<string>> GetEnrolledStudentsAsync(string courseId, CancellationToken cancellationToken = default)
+        {
+            var course = await this.GetByIdAsync(new ObjectId(courseId), cancellationToken);
+            if (course == null)
+                return new List<string>();
+            return course.EnrolledStudents;
         }
     }
 }

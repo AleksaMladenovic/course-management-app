@@ -58,14 +58,14 @@ namespace DatabaseLayer.Repositories
 			return await _collection.Find(filter).AnyAsync(cancellationToken);
 		}
 
-        public Task UnEnrollStudentFromCourse(string studentFirebaseUid, string courseId)
+        public Task UnEnrollStudentFromCourse(string studentFirebaseUid, string courseId, CancellationToken cancellationToken = default)
 		{
 			var filter = Builders<Student>.Filter.Eq(s => s.FirebaseUid, studentFirebaseUid);
 			var update = Builders<Student>.Update.Pull(s => s.Courses, courseId);
-			return _collection.UpdateOneAsync(filter, update);
+			return _collection.UpdateOneAsync(filter, update, cancellationToken: cancellationToken);
 		}
 
-        public Task<List<string>> GetStudentCourses(string studentFirebaseUid, CancellationToken cancellationToken = default)
+		public Task<List<string>> GetStudentCourses(string studentFirebaseUid, CancellationToken cancellationToken = default)
 		{
 			var filter = Builders<Student>.Filter.Eq(s => s.FirebaseUid, studentFirebaseUid);
 			var student = _collection.Find(filter).FirstOrDefault(cancellationToken);

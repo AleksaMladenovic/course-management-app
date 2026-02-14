@@ -9,5 +9,6 @@ namespace CommonLayer.Interfaces
         Task EnrollStudentToCourse(string studentFirebaseUid, string courseId);
         Task UnEnrollStudentFromCourse(string studentFirebaseUid, string courseId);
         Task<List<DTOCourseResponse>> GetStudentCourses(string studentFirebaseUid);
+        Task<DTOStudentsStats> GetStudentStats(string studentFirebaseUid);
     }
 }

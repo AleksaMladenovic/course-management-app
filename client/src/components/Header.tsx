@@ -96,7 +96,7 @@ const Header = () => {
 
             {/* --- CONTENT AREA --- */}
             {/* pt-24 je ključan jer je header fixed i zauzima prostor na vrhu */}
-            <main className="pt-32 px-8 md:px-16 xl:px-24">
+            <div className="w-full pt-32 px-8 md:px-16 xl:px-24">
                 <div className="animate-in fade-in slide-in-from-bottom-4 duration-700">
                     {/* Renderovanje na osnovu Role i State-a */}
                     {user?.role === RoleType.Student && (
@@ -115,7 +115,7 @@ const Header = () => {
                         </>
                     )}
                 </div>
-            </main>
+            </div>
         </div>
     );
 };

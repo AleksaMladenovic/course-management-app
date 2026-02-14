@@ -20,7 +20,8 @@ namespace CommonLayer.Interfaces
         Task<DTOCoursePagedResponse> GetCoursesAsync(DTOCourseFilter filterDto, CancellationToken cancellationToken = default);
         Task<DTOCourseWithLessons?> GetCourseByIdAsync(string id, CancellationToken cancellationToken = default);
         Task EnrollStudentToCourseAsync(string courseId, string studentFirebaseUid, CancellationToken cancellationToken = default);
-        Task UnEnrollStudentFromCourse(string courseId, string studentFirebaseUid);
-        Task<DTOCourseResponse?> GetCourseDTOByIdAsync(string courseId);
+        Task UnEnrollStudentFromCourse(string courseId, string studentFirebaseUid, CancellationToken cancellationToken = default);
+        Task<DTOCourseResponse?> GetCourseDTOByIdAsync(string courseId, CancellationToken cancellationToken = default);
+        Task<List<string>> GetEnrolledStudentsAsync(string courseId, CancellationToken cancellationToken = default);
     }
 }

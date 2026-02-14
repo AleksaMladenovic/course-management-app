@@ -11,7 +11,7 @@ public sealed class StudentController : ControllerBase
     IStudentService _studentService;
     public StudentController(IStudentService studentService)
     {
-        this._studentService = studentService;        
+        this._studentService = studentService;
     }
 
     [HttpPost("register")]
@@ -51,5 +51,12 @@ public sealed class StudentController : ControllerBase
     {
         var courses = await _studentService.GetStudentCourses(studentFirebaseUid);
         return Ok(courses);
+    }
+
+    [HttpGet("{studentFirebaseUid}/stats")]
+    public async Task<IActionResult> GetStudentStats(string studentFirebaseUid)
+    {
+        var stats = await _studentService.GetStudentStats(studentFirebaseUid);
+        return Ok(stats);
     }
 }

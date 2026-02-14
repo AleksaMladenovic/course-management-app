@@ -7,5 +7,6 @@ namespace CommonLayer.Interfaces
     {
         Task<bool> Register(DTORegisterAuthor author);
         Task<List<DTOCourseResponse>> GetAuthorCourses(string authorFirebaseUid);
+        Task<DTOAuthorStats> GetAuthorStats(string authorFirebaseUid);
     }
 }
