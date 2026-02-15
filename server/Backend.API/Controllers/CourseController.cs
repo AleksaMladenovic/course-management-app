@@ -33,9 +33,16 @@ namespace Backend.API.Controllers
         [HttpPut("updateCourse/{id}")]
         public async Task<IActionResult> UpdateCourse(string id, [FromBody] DTOUpdateCourse dto)
         {
-            var success = await courseService.UpdateCourseAsync(id, dto);
-            if (!success) return BadRequest("Kurs nije pronađen ili nema izmena.");
-            return Ok("Kurs uspešno ažuriran.");
+            try
+            {
+                var success = await courseService.UpdateCourseAsync(id, dto);
+                if (!success) Ok("Kurs nije izmenjen jer nema promena");
+                return Ok("Uspesno azuriran kurs");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest("Neuspešno ažuriran kurs: " + ex.Message);
+            }
         }
 
         [HttpDelete("deleteCourse/{id}")]

@@ -11,6 +11,7 @@ namespace Backend.API.Tests;
 [TestFixture]
 public sealed class CourseControllerTests : IntegrationTestBase
 {
+    // addCourse tests
     [Test]
     public async Task Add_Course_Returns_Created()
     {
@@ -77,4 +78,96 @@ public sealed class CourseControllerTests : IntegrationTestBase
         }
     }
 
+    // updateCourse tests
+    [Test]
+    public async Task Update_Course_Returns_Ok()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        var course = BuildTestCourse(author);
+        await TestDb.SeedAuthorAsync(author);
+        await TestDb.SeedCourseAsync(course);
+
+        var courseDto = new DTOUpdateCourse
+        {
+            Name = "Updated Course",
+            DurationInWeeks = 8,
+            Description = "Updated description",
+            Difficulty = Difficulty.Medium,
+        };
+
+        var response = await Client.PutAsJsonAsync($"/api/Course/updateCourse/{course.Id}", courseDto);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var updatedCourse = await TestDb.GetCourseByIdAsync(course.Id);
+        Assert.That(updatedCourse, Is.Not.Null);
+        Assert.That(updatedCourse!.Name, Is.EqualTo(courseDto.Name));
+        Assert.That(updatedCourse.DurationInWeeks, Is.EqualTo(courseDto.DurationInWeeks));
+        Assert.That(updatedCourse.Description, Is.EqualTo(courseDto.Description));
+        Assert.That(updatedCourse.Difficulty, Is.EqualTo(courseDto.Difficulty));
+    }
+
+    [Test]
+    public async Task Update_Nonexistent_Course_Returns_BadRequest()
+    {
+        var courseDto = new DTOUpdateCourse
+        {
+            Name = "Updated Course",
+            DurationInWeeks = 8,
+            Description = "Updated description",
+            Difficulty = Difficulty.Medium,
+        };
+
+        var response = await Client.PutAsJsonAsync($"/api/Course/updateCourse/{ObjectId.GenerateNewId()}", courseDto);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));  
+    }
+
+    [Test]
+    public async Task Update_Course_With_Invalid_Fields_Returns_BadRequest()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        var course = BuildTestCourse(author);
+        await TestDb.SeedAuthorAsync(author);
+        await TestDb.SeedCourseAsync(course);
+        // Test cases: empty name, negative duration, short description, invalid difficulty
+        var invalidCourses = new[]
+        {
+            new DTOUpdateCourse { Name = "", DurationInWeeks = 8, Description = "Valid description", Difficulty = Difficulty.Medium },
+            new DTOUpdateCourse { Name = "Valid Name", DurationInWeeks = 0, Description = "Valid description", Difficulty = Difficulty.Medium },
+            new DTOUpdateCourse { Name = "Valid Name", DurationInWeeks = 8, Description = "Short", Difficulty = Difficulty.Medium },
+            new DTOUpdateCourse { Name = "Valid Name", DurationInWeeks = 8, Description = "Valid description", Difficulty = 0 }
+        };
+
+        foreach (var dto in invalidCourses)
+        {
+            var response = await Client.PutAsJsonAsync($"/api/Course/updateCourse/{course.Id}", dto);
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest), $"Failed for DTO: {System.Text.Json.JsonSerializer.Serialize(dto)}");
+        }
+    }
+
+    [Test]
+    public async Task Update_Course_With_No_Changes_Returns_Ok()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        var course = BuildTestCourse(author);
+        await TestDb.SeedAuthorAsync(author);
+        await TestDb.SeedCourseAsync(course);
+
+        var courseDto = new DTOUpdateCourse
+        {
+            Name = course.Name,
+            DurationInWeeks = course.DurationInWeeks,
+            Description = course.Description,
+            Difficulty = course.Difficulty,
+        };
+
+        var response = await Client.PutAsJsonAsync($"/api/Course/updateCourse/{course.Id}", courseDto);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var updatedCourse = await TestDb.GetCourseByIdAsync(course.Id);
+        Assert.That(updatedCourse, Is.Not.Null);
+        Assert.That(updatedCourse!.Name, Is.EqualTo(courseDto.Name));
+        Assert.That(updatedCourse.DurationInWeeks, Is.EqualTo(courseDto.DurationInWeeks));
+        Assert.That(updatedCourse.Description, Is.EqualTo(courseDto.Description));
+        Assert.That(updatedCourse.Difficulty, Is.EqualTo(courseDto.Difficulty));
+    }
+
+    
 }

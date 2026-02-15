@@ -20,7 +20,7 @@ namespace DatabaseLayer.Repositories
         private readonly IMongoCollection<Lesson> _lessonCollection;
 
         public MongoCourseRepository(IMongoClient mongoClient, IOptions<MongoSettings> settings, IAuthorRepository authorRepository)
-		{
+        {
             this._authorRepository = authorRepository;
             var databaseName = settings.Value.DatabaseName;
             if (string.IsNullOrWhiteSpace(databaseName))
@@ -28,11 +28,11 @@ namespace DatabaseLayer.Repositories
                 throw new InvalidOperationException("MongoSettings:DatabaseName is missing.");
             }
 
-			var database = mongoClient.GetDatabase(databaseName);
-			_collection = database.GetCollection<Course>("courses");
+            var database = mongoClient.GetDatabase(databaseName);
+            _collection = database.GetCollection<Course>("courses");
             _lessonCollection = database.GetCollection<Lesson>("lessons");
         }
-      
+
 
 
         public Task<List<Course>> GetAllAsync(CancellationToken cancellationToken = default)
@@ -70,18 +70,21 @@ namespace DatabaseLayer.Repositories
 
         public async Task<bool> UpdateCourseAsync(ObjectId id, DTOUpdateCourse dto, CancellationToken cancellationToken = default)
         {
+            var course = await _collection.Find(c => c.Id == id).FirstOrDefaultAsync(cancellationToken);
+            if (course == null)
+                throw new InvalidOperationException($"Course with id {id} not found.");
             var updates = new List<UpdateDefinition<Course>>();
 
             if (!string.IsNullOrWhiteSpace(dto.Name))
                 updates.Add(Builders<Course>.Update.Set(c => c.Name, dto.Name));
 
-            if (dto.DurationInWeeks.HasValue && dto.DurationInWeeks.Value!=0)
+            if (dto.DurationInWeeks.HasValue && dto.DurationInWeeks.Value != 0)
                 updates.Add(Builders<Course>.Update.Set(c => c.DurationInWeeks, dto.DurationInWeeks.Value));
 
             if (!string.IsNullOrWhiteSpace(dto.Description))
                 updates.Add(Builders<Course>.Update.Set(c => c.Description, dto.Description));
 
-            if (dto.Difficulty.HasValue && dto.Difficulty.Value!=0)
+            if (dto.Difficulty.HasValue && dto.Difficulty.Value != 0)
                 updates.Add(Builders<Course>.Update.Set(c => c.Difficulty, dto.Difficulty.Value));
 
             if (updates.Count == 0) return true;
