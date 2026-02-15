@@ -1,4 +1,5 @@
-﻿using BusinessLayer.Services;
+﻿using System.Net;
+using BusinessLayer.Services;
 using CommonLayer.DTOs;
 using CommonLayer.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ namespace Backend.API.Controllers
             try
             {
                 string courseId = await courseService.AddCourseAsync(dto);
-                return Ok(courseId);
+                return StatusCode((int)HttpStatusCode.Created, courseId);
             }
             catch (Exception ex)
             {

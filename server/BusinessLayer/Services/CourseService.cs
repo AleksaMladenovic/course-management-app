@@ -23,6 +23,11 @@ namespace BusinessLayer.Services
 
         public async Task<string> AddCourseAsync(DTOAddCourse dto)
         {
+            var author = await authorRepository.GetByIdAsync(dto.AuthorFirebaseId);
+            if (author == null)
+            {
+                throw new InvalidOperationException($"Author with Firebase UID '{dto.AuthorFirebaseId}' not found.");
+            }
             string courseId = await this.courseRepository.CreateCourseAsync(dto);
             await this.authorRepository.AddCourseToAuthorAsync(dto.AuthorFirebaseId, courseId);
             return courseId;
