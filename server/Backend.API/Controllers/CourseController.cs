@@ -36,7 +36,7 @@ namespace Backend.API.Controllers
             try
             {
                 var success = await courseService.UpdateCourseAsync(id, dto);
-                if (!success) Ok("Kurs nije izmenjen jer nema promena");
+                if (!success) return Ok("Kurs nije izmenjen jer nema promena");
                 return Ok("Uspesno azuriran kurs");
             }
             catch (Exception ex)

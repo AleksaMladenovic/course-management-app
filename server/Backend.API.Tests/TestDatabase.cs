@@ -91,4 +91,16 @@ public sealed class TestDatabase
         var update = Builders<Course>.Update.Push(c => c.Lessons, lesson);
         await courses.UpdateOneAsync(c => c.Id.ToString() == courseId, update);
     }
+
+    public async Task<Lesson?> GetLessonFromCourseAsync(string courseId, string lessonId)
+    {
+        var course = await GetCourseByIdAsync(ObjectId.Parse(courseId));
+        return course?.Lessons.FirstOrDefault(l => l.Id.ToString() == lessonId);
+    }
+
+    public async Task<int> GetLessonCountInCourseAsync(string courseId)
+    {
+        var course = await GetCourseByIdAsync(ObjectId.Parse(courseId));
+        return course?.Lessons.Count ?? 0;
+    }
 }

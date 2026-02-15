@@ -74,7 +74,7 @@ namespace DatabaseLayer.Repositories
                 courseUpdateList.Add(Builders<Course>.Update.Set("Lessons.$.Name", updateDto.Name));
             }
 
-            if (updateDto.DurationInMinutes!=0)
+            if (updateDto.DurationInMinutes!= null && updateDto.DurationInMinutes!=0)
             {
                 lessonUpdateList.Add(Builders<Lesson>.Update.Set(l => l.DurationInMinutes, updateDto.DurationInMinutes));
                 courseUpdateList.Add(Builders<Course>.Update.Set("Lessons.$.DurationInMinutes", updateDto.DurationInMinutes));
