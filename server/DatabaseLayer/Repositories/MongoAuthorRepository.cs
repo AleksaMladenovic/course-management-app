@@ -61,5 +61,12 @@ namespace DatabaseLayer.Repositories
             var author = await _collection.Find(filter).FirstOrDefaultAsync(cancellationToken);
             return author?.Courses ?? new List<string>();
         }
+
+        public async Task RemoveCourseFromAuthorAsync(object authorFirebaseId, string id)
+        {   
+            var filter = Builders<Author>.Filter.Eq(a => a.FirebaseUid, authorFirebaseId.ToString());
+            var update = Builders<Author>.Update.Pull(a => a.Courses, id);
+            await _collection.UpdateOneAsync(filter, update);
+        }
     }
 }

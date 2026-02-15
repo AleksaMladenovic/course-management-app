@@ -15,5 +15,6 @@ namespace CommonLayer.Interfaces
         Task AddCourseToAuthorAsync(string firebaseUid, string courseId, CancellationToken cancellationToken = default);
         List<string> GetCoursesByAuthorIdAsync(string authorFirebaseUid);
         Task<List<string>> GetCoursesByAuthorIdAsync(string authorFirebaseUid, CancellationToken cancellationToken = default);
+        Task RemoveCourseFromAuthorAsync(object authorFirebaseId, string id);
     }
 }

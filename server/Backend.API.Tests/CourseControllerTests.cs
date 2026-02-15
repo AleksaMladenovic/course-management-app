@@ -2,8 +2,10 @@ using System.Net;
 using System.Net.Http.Json;
 using CommonLayer.DTOs;
 using CommonLayer.Enums;
+using CommonLayer.Models;
 using MongoDB.Bson;
 using NUnit.Framework;
+using NUnit.Framework.Internal;
 using NUnit.Framework.Legacy;
 
 namespace Backend.API.Tests;
@@ -37,6 +39,10 @@ public sealed class CourseControllerTests : IntegrationTestBase
         Assert.That(course.Description, Is.EqualTo(courseDto.Description));
         Assert.That(course.Difficulty, Is.EqualTo(courseDto.Difficulty));
         Assert.That(course.Author.FirebaseUid, Is.EqualTo(author.FirebaseUid));
+        Assert.That(course.EnrolledStudents, Is.Empty);
+        author = await TestDb.GetAuthorByFirebaseUidAsync(author.FirebaseUid);
+        Assert.That(author, Is.Not.Null);
+        Assert.That(author.Courses, Does.Contain(courseId));
     }
     
     [Test]
@@ -169,5 +175,54 @@ public sealed class CourseControllerTests : IntegrationTestBase
         Assert.That(updatedCourse.Difficulty, Is.EqualTo(courseDto.Difficulty));
     }
 
+    // deleteCourse
+    [Test]
+    public async Task Delete_Course_Returns_Ok()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        var course = BuildTestCourse(author);
+        var student1 = new Student
+        {
+            Id = ObjectId.GenerateNewId(),
+            FirebaseUid = "student1-firebase-uid",
+            Name = "Test",
+            Surname = "Student1",
+            Email = ""
+        };
+        var student2 = new Student
+        {
+            Id = ObjectId.GenerateNewId(),
+            FirebaseUid = "student2-firebase-uid",
+            Name = "Test",
+            Surname = "Student2",
+            Email = ""
+        };
+        await TestDb.SeedStudentAsync(student1);
+        await TestDb.SeedStudentAsync(student2);
+        await TestDb.SeedAuthorAsync(author);
+        await TestDb.SeedCourseAsync(course);
+        await TestDb.UpdateStudentCoursesAsync(student1.FirebaseUid, new List<string> { course.Id.ToString() });
+        await TestDb.UpdateStudentCoursesAsync(student2.FirebaseUid, new List<string> { course.Id.ToString() });
+        await TestDb.UpdateAuthorCoursesAsync(author.FirebaseUid, new List<string> { course.Id.ToString() });
+        await TestDb.UpdateEnrolledStudentsAsync(course.Id.ToString(), new List<string> { student1.FirebaseUid, student2.FirebaseUid });
+        
+        var response = await Client.DeleteAsync($"/api/Course/deleteCourse/{course.Id}");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var deletedCourse = await TestDb.GetCourseByIdAsync(course.Id);
+        Assert.That(deletedCourse, Is.Null);
+        var updatedStudent1 = await TestDb.GetStudentByFirebaseUidAsync(student1.FirebaseUid);
+        var updatedStudent2 = await TestDb.GetStudentByFirebaseUidAsync(student2.FirebaseUid);
+        Assert.That(updatedStudent1!.Courses, Does.Not.Contain(course.Id.ToString()));
+        Assert.That(updatedStudent2!.Courses, Does.Not.Contain(course.Id.ToString()));
+        var updatedAuthor = await TestDb.GetAuthorByFirebaseUidAsync(author.FirebaseUid);
+        Assert.That(updatedAuthor!.Courses, Does.Not.Contain(course.Id.ToString()));
+    }
+
+    [Test]
+    public async Task Delete_Nonexistent_Course_Returns_BadRequest()
+    {
+        var response = await Client.DeleteAsync($"/api/Course/deleteCourse/{ObjectId.GenerateNewId()}");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
     
 }

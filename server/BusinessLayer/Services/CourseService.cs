@@ -14,11 +14,12 @@ namespace BusinessLayer.Services
     {
         private readonly ICourseRepository courseRepository;
         private readonly IAuthorRepository authorRepository;
-        
-        public CourseService(ICourseRepository courseRepository, IAuthorRepository authorRepository)
+        private readonly IStudentRepository studentRepository;
+        public CourseService(ICourseRepository courseRepository, IAuthorRepository authorRepository, IStudentRepository studentRepository)
         {
             this.courseRepository = courseRepository;
             this.authorRepository = authorRepository;
+            this.studentRepository = studentRepository;
         }
 
         public async Task<string> AddCourseAsync(DTOAddCourse dto)
@@ -46,6 +47,15 @@ namespace BusinessLayer.Services
         public async Task<bool> DeleteCourseAsync(string id)
         {
             if (!ObjectId.TryParse(id, out var objId)) return false;
+            var course = await courseRepository.GetByIdAsync(objId);
+            if (course == null) return false;
+            await authorRepository.RemoveCourseFromAuthorAsync(course.AuthorFireBaseId, id);
+
+            foreach (var studentId in course.EnrolledStudents)
+            {
+                await courseRepository.UnEnrollStudentFromCourse(id, studentId);
+                await studentRepository.UnEnrollStudentFromCourse(studentId, id);
+            }
             return await courseRepository.DeleteCourseAsync(objId);
         }
 
