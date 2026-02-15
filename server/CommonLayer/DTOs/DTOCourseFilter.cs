@@ -22,21 +22,21 @@ namespace CommonLayer.DTOs
         [Range(1, int.MaxValue, ErrorMessage = "PageSize must be greater than 0")]
         public int PageSize { get; set; } = 10;
         [EnumDataType(typeof(CourseSortEnum), ErrorMessage = "Sort must be a valid value.")]
-        public CourseSortEnum? Sort {  get; set; }
+        public CourseSortEnum? Sort { get; set; }
 
 
         public IEnumerable<ValidationResult> Validate(ValidationContext validationContext)
-    {
-        if (MinDurationInWeeks.HasValue && MaxDurationInWeeks.HasValue)
         {
-            if (MinDurationInWeeks > MaxDurationInWeeks)
+            if (MinDurationInWeeks.HasValue && MaxDurationInWeeks.HasValue)
             {
-                yield return new ValidationResult(
-                    "MinDurationInWeeks must be less than or equal to MaxDurationInWeeks.",
-                    new[] { nameof(MinDurationInWeeks), nameof(MaxDurationInWeeks) }
-                );
+                if (MinDurationInWeeks > MaxDurationInWeeks)
+                {
+                    yield return new ValidationResult(
+                        "MinDurationInWeeks must be less than or equal to MaxDurationInWeeks.",
+                        new[] { nameof(MinDurationInWeeks), nameof(MaxDurationInWeeks) }
+                    );
+                }
             }
         }
-    }
     }
 }

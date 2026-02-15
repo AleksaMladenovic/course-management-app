@@ -419,4 +419,5 @@ public sealed class CourseControllerTests : IntegrationTestBase
         Assert.That(courses.Items[7].Name, Is.EqualTo("Course 2"));
     }
     
+    
 }
