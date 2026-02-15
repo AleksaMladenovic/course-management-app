@@ -224,5 +224,199 @@ public sealed class CourseControllerTests : IntegrationTestBase
         var response = await Client.DeleteAsync($"/api/Course/deleteCourse/{ObjectId.GenerateNewId()}");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
+
+    // getCoursesByFilter 
+    [Test]
+    public async Task Get_Courses_By_Filter_Returns_Ok()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        var course1 = BuildTestCourse(author, ObjectId.GenerateNewId());
+        var course2 = BuildTestCourse(author, ObjectId.GenerateNewId());
+        course2.Name = "Another Course";
+        course2.Difficulty = Difficulty.Medium;
+        await TestDb.SeedAuthorAsync(author);
+        await TestDb.SeedCourseAsync(course1);
+        await TestDb.SeedCourseAsync(course2);
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?name=Test&difficulty=Easy");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(courses, Is.Not.Null);
+        Assert.That(courses!.TotalCount, Is.EqualTo(1));
+        Assert.That(courses.Items[0].Id, Is.EqualTo(course1.Id.ToString()));
+    }
+
+    [Test]
+    public async Task Get_Courses_By_Filter_With_No_Matches_Returns_Empty_List()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        var course = BuildTestCourse(author);
+        course.Name = "Unique Course Name";
+        await TestDb.SeedAuthorAsync(author);
+        await TestDb.SeedCourseAsync(course);
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?name=Nonexistent&difficulty=Hard");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(courses, Is.Not.Null);
+        Assert.That(courses!.TotalCount, Is.EqualTo(0));
+        Assert.That(courses.Items, Is.Empty);
+    }
+
+    [Test]
+    public async Task Get_Courses_By_Filter_With_Min_And_Max_Duration_Returns_Ok()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        var course1 = BuildTestCourse(author, ObjectId.GenerateNewId());
+        course1.DurationInWeeks = 4;
+        var course2 = BuildTestCourse(author, ObjectId.GenerateNewId());
+        course2.DurationInWeeks = 8;
+        var course3 = BuildTestCourse(author, ObjectId.GenerateNewId());
+        course3.DurationInWeeks = 12;
+        var course4 = BuildTestCourse(author, ObjectId.GenerateNewId());
+        course4.DurationInWeeks = 10;
+        await TestDb.SeedAuthorAsync(author);
+        await TestDb.SeedCourseAsync(course1);
+        await TestDb.SeedCourseAsync(course2);
+        await TestDb.SeedCourseAsync(course3);
+        await TestDb.SeedCourseAsync(course4);
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?minDurationInWeeks=3&maxDurationInWeeks=5");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(courses, Is.Not.Null);
+        Assert.That(courses!.TotalCount, Is.EqualTo(1));
+        Assert.That(courses.Items[0].Id, Is.EqualTo(course1.Id.ToString()));
+
+        response = await Client.GetAsync("/api/Course/getCoursesByFilter?minDurationInWeeks=7&maxDurationInWeeks=11");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(courses, Is.Not.Null);
+        Assert.That(courses!.TotalCount, Is.EqualTo(2));
+        var courseIds = courses.Items.Select(c => c.Id).ToList();
+        Assert.That(courseIds, Does.Contain(course2.Id.ToString()));
+        Assert.That(courseIds, Does.Contain(course4.Id.ToString()));
+
+        response = await Client.GetAsync("/api/Course/getCoursesByFilter?minDurationInWeeks=5");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(courses, Is.Not.Null);
+        Assert.That(courses!.TotalCount, Is.EqualTo(3));
+        courseIds = courses.Items.Select(c => c.Id).ToList();
+        Assert.That(courseIds, Does.Contain(course2.Id.ToString()));
+        Assert.That(courseIds, Does.Contain(course3.Id.ToString()));
+        Assert.That(courseIds, Does.Contain(course4.Id.ToString()));
+    }
+
+    [Test]
+    public async Task Get_Courses_By_Filter_With_Invalid_Duration_Returns_BadRequest()
+    {
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?minDurationInWeeks=-1&maxDurationInWeeks=5");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        response = await Client.GetAsync("/api/Course/getCoursesByFilter?minDurationInWeeks=3&maxDurationInWeeks=-5");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        response = await Client.GetAsync("/api/Course/getCoursesByFilter?minDurationInWeeks=5&maxDurationInWeeks=3");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        response = await Client.GetAsync("/api/Course/getCoursesByFilter?minDurationInWeeks=-1&maxDurationInWeeks=-5");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        response = await Client.GetAsync("/api/Course/getCoursesByFilter?pageSize=-1");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        response = await Client.GetAsync("/api/Course/getCoursesByFilter?pageNumber=-1");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task Get_Course_Pagination_Works_Correctly()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        await TestDb.SeedAuthorAsync(author);
+        for (int i = 1; i <= 25; i++)
+        {
+            var course = BuildTestCourse(author, ObjectId.GenerateNewId());
+            course.Name = $"Course {i}";
+            await TestDb.SeedCourseAsync(course);
+        }
+
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?pageNumber=1&pageSize=10&sortBy="+CourseSortEnum.Name);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(courses, Is.Not.Null);
+        Assert.That(courses!.TotalCount, Is.EqualTo(25));
+        Assert.That(courses.Items.Count, Is.EqualTo(10));
+        Assert.That(courses.Items[0].Name, Is.EqualTo("Course 1"));
+        Assert.That(courses.Items[9].Name, Is.EqualTo("Course 10"));
+
+        response = await Client.GetAsync("/api/Course/getCoursesByFilter?pageNumber=3&pageSize=10");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(courses, Is.Not.Null);
+        Assert.That(courses!.TotalCount, Is.EqualTo(25));
+        Assert.That(courses.Items.Count, Is.EqualTo(5));
+        Assert.That(courses.Items[0].Name, Is.EqualTo("Course 21"));
+        Assert.That(courses.Items[4].Name, Is.EqualTo("Course 25"));
+    }
+
+    [Test]
+    public async Task Get_Courses_By_Filter_With_Invalid_Sort_Returns_BadRequest()
+    {
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?sort=InvalidSort");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task Get_Courses_By_Filter_Testing_Sorting_By_Duration_Returns_Ok()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        await TestDb.SeedAuthorAsync(author);
+        for (int i = 1; i <= 5; i++)
+        {
+            var course = BuildTestCourse(author, ObjectId.GenerateNewId());
+            course.Name = $"Course {i}";
+            course.DurationInWeeks = i;
+            await TestDb.SeedCourseAsync(course);
+        }
+
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?sort="+CourseSortEnum.AscDuration);
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(courses, Is.Not.Null);
+        Assert.That(courses!.TotalCount, Is.EqualTo(5));
+        Assert.That(courses.Items[0].DurationInWeeks, Is.EqualTo(1));
+        Assert.That(courses.Items[4].DurationInWeeks, Is.EqualTo(5));
+
+        var responseDesc = await Client.GetAsync("/api/Course/getCoursesByFilter?sort="+CourseSortEnum.DescDuration);
+        Assert.That(responseDesc.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var coursesDesc = await responseDesc.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(coursesDesc, Is.Not.Null);
+        Assert.That(coursesDesc!.TotalCount, Is.EqualTo(5));
+        Assert.That(coursesDesc.Items[0].DurationInWeeks, Is.EqualTo(5));
+        Assert.That(coursesDesc.Items[4].DurationInWeeks, Is.EqualTo(1));
+    }
+
+    [Test]
+    public async Task Get_Courses_By_Filter_Testing_Sorting_By_Name_Returns_Ok()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        await TestDb.SeedAuthorAsync(author);
+        for (int i = 1; i <= 15; i++)
+        {
+            var course = BuildTestCourse(author, ObjectId.GenerateNewId());
+            course.Name = $"Course {i}";
+            course.DurationInWeeks = i;
+            await TestDb.SeedCourseAsync(course);
+        }
+
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?sort="+CourseSortEnum.Name+"&pageSize=20&pageNumber=1");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
+        Assert.That(courses, Is.Not.Null);
+        Assert.That(courses!.TotalCount, Is.EqualTo(15));
+        Assert.That(courses.Items[0].Name, Is.EqualTo("Course 1"));
+        Assert.That(courses.Items[1].Name, Is.EqualTo("Course 10"));
+        Assert.That(courses.Items[6].Name, Is.EqualTo("Course 15"));
+        Assert.That(courses.Items[7].Name, Is.EqualTo("Course 2"));
+    }
     
 }

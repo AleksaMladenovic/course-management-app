@@ -136,7 +136,7 @@ namespace DatabaseLayer.Repositories
                 CourseSortEnum.Name => Builders<Course>.Sort.Ascending(x => x.Name),
                 CourseSortEnum.AscDuration => Builders<Course>.Sort.Ascending(x => x.DurationInWeeks),
                 CourseSortEnum.DescDuration => Builders<Course>.Sort.Descending(x => x.DurationInWeeks),
-                _ => Builders<Course>.Sort.Ascending(x => x.Name)
+                _ => null
             };
 
             int page = filterDto.PageNumber < 1 ? 1 : filterDto.PageNumber;
