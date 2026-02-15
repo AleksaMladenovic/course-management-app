@@ -44,7 +44,7 @@ public sealed class CourseControllerTests : IntegrationTestBase
         Assert.That(author, Is.Not.Null);
         Assert.That(author.Courses, Does.Contain(courseId));
     }
-    
+
     [Test]
     public async Task Add_Course_With_Nonexistent_Author_Returns_BadRequest()
     {
@@ -123,7 +123,7 @@ public sealed class CourseControllerTests : IntegrationTestBase
         };
 
         var response = await Client.PutAsJsonAsync($"/api/Course/updateCourse/{ObjectId.GenerateNewId()}", courseDto);
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));  
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
     }
 
     [Test]
@@ -205,7 +205,7 @@ public sealed class CourseControllerTests : IntegrationTestBase
         await TestDb.UpdateStudentCoursesAsync(student2.FirebaseUid, new List<string> { course.Id.ToString() });
         await TestDb.UpdateAuthorCoursesAsync(author.FirebaseUid, new List<string> { course.Id.ToString() });
         await TestDb.UpdateEnrolledStudentsAsync(course.Id.ToString(), new List<string> { student1.FirebaseUid, student2.FirebaseUid });
-        
+
         var response = await Client.DeleteAsync($"/api/Course/deleteCourse/{course.Id}");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var deletedCourse = await TestDb.GetCourseByIdAsync(course.Id);
@@ -339,7 +339,7 @@ public sealed class CourseControllerTests : IntegrationTestBase
             await TestDb.SeedCourseAsync(course);
         }
 
-        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?pageNumber=1&pageSize=10&sortBy="+CourseSortEnum.Name);
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?pageNumber=1&pageSize=10&sortBy=" + CourseSortEnum.Name);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
         Assert.That(courses, Is.Not.Null);
@@ -378,7 +378,7 @@ public sealed class CourseControllerTests : IntegrationTestBase
             await TestDb.SeedCourseAsync(course);
         }
 
-        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?sort="+CourseSortEnum.AscDuration);
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?sort=" + CourseSortEnum.AscDuration);
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
         Assert.That(courses, Is.Not.Null);
@@ -386,7 +386,7 @@ public sealed class CourseControllerTests : IntegrationTestBase
         Assert.That(courses.Items[0].DurationInWeeks, Is.EqualTo(1));
         Assert.That(courses.Items[4].DurationInWeeks, Is.EqualTo(5));
 
-        var responseDesc = await Client.GetAsync("/api/Course/getCoursesByFilter?sort="+CourseSortEnum.DescDuration);
+        var responseDesc = await Client.GetAsync("/api/Course/getCoursesByFilter?sort=" + CourseSortEnum.DescDuration);
         Assert.That(responseDesc.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var coursesDesc = await responseDesc.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
         Assert.That(coursesDesc, Is.Not.Null);
@@ -408,7 +408,7 @@ public sealed class CourseControllerTests : IntegrationTestBase
             await TestDb.SeedCourseAsync(course);
         }
 
-        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?sort="+CourseSortEnum.Name+"&pageSize=20&pageNumber=1");
+        var response = await Client.GetAsync("/api/Course/getCoursesByFilter?sort=" + CourseSortEnum.Name + "&pageSize=20&pageNumber=1");
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
         var courses = await response.Content.ReadFromJsonAsync<DTOCoursePagedResponse>();
         Assert.That(courses, Is.Not.Null);
@@ -418,6 +418,75 @@ public sealed class CourseControllerTests : IntegrationTestBase
         Assert.That(courses.Items[6].Name, Is.EqualTo("Course 15"));
         Assert.That(courses.Items[7].Name, Is.EqualTo("Course 2"));
     }
-    
-    
+
+    // getById
+    [Test]
+    public async Task Get_Course_By_Id_Returns_Ok()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        var course = BuildTestCourse(author);
+        await TestDb.SeedAuthorAsync(author);
+        await TestDb.SeedCourseAsync(course);
+        var response = await Client.GetAsync($"/api/Course/getById/{course.Id}");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var returnedCourse = await response.Content.ReadFromJsonAsync<DTOCourseWithLessons>();
+        Assert.That(returnedCourse, Is.Not.Null);
+        Assert.That(returnedCourse!.Id, Is.EqualTo(course.Id.ToString()));
+        Assert.That(returnedCourse.Name, Is.EqualTo(course.Name));
+        Assert.That(returnedCourse.Description, Is.EqualTo(course.Description));
+        Assert.That(returnedCourse.DurationInWeeks, Is.EqualTo(course.DurationInWeeks));
+        Assert.That(returnedCourse.Difficulty, Is.EqualTo(course.Difficulty));
+        Assert.That(returnedCourse.Author.AuthorFirebaseId, Is.EqualTo(author.FirebaseUid));
+        Assert.That(returnedCourse.Author.Name, Is.EqualTo(author.Name));
+        Assert.That(returnedCourse.Author.Surname, Is.EqualTo(author.Surname));
+        Assert.That(returnedCourse.Lessons, Is.Empty);
+    }
+
+    [Test]
+    public async Task Get_Course_By_Nonexistent_Id_Returns_BadRequest()
+    {
+        var response = await Client.GetAsync($"/api/Course/getById/{ObjectId.GenerateNewId()}");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+    }
+
+    [Test]
+    public async Task Get_Course_With_Lessons_Returns_Ok()
+    {
+        var author = BuildTestAuthor("test-firebase-uid");
+        var course = BuildTestCourse(author);
+        await TestDb.SeedAuthorAsync(author);
+        await TestDb.SeedCourseAsync(course);
+        var lessons = new List<Lesson>();
+        for (int i = 1; i <= 5; i++)
+        {
+            var lesson = BuildTestLesson(ObjectId.GenerateNewId());
+            lesson.Name = $"Lesson {i}";
+            lesson.Description = $"Description for lesson {i}";
+            lesson.DurationInMinutes = i * 10;
+            lessons.Add(lesson);
+            await TestDb.AddLessonToCourseAsync(course.Id.ToString(), lesson);
+        }
+
+        var response = await Client.GetAsync($"/api/Course/getById/{course.Id}");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+        var returnedCourse = await response.Content.ReadFromJsonAsync<DTOCourseWithLessons>();
+        Assert.That(returnedCourse, Is.Not.Null);
+        Assert.That(returnedCourse!.Lessons.Count, Is.EqualTo(5));
+        for (int i = 0; i < 5; i++)
+        {
+            Assert.That(returnedCourse.Lessons[i].Id, Is.EqualTo(lessons[i].Id.ToString()));
+            Assert.That(returnedCourse.Lessons[i].Name, Is.EqualTo(lessons[i].Name));
+            Assert.That(returnedCourse.Lessons[i].Description, Is.EqualTo(lessons[i].Description));
+            Assert.That(returnedCourse.Lessons[i].DurationInMinutes, Is.EqualTo(lessons[i].DurationInMinutes));
+        }
+
+    }
+
+    [Test]
+    public async Task Get_Course_By_Invalid_Id_Format_Returns_BadRequest()
+    {
+        var response = await Client.GetAsync("/api/Course/getById/abc");
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest).Or.EqualTo(HttpStatusCode.InternalServerError));
+    }
+
 }

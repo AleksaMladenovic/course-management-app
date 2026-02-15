@@ -62,4 +62,15 @@ public abstract class IntegrationTestBase
             Author = author
         };
     }
+
+    protected static Lesson BuildTestLesson(ObjectId? id = null)
+    {
+        return new Lesson
+        {
+            Id = id ?? ObjectId.GenerateNewId(),
+            Name = "Test Lesson",
+            Description = "Test lesson description",
+            DurationInMinutes = 60,
+        };
+    }
 }

@@ -84,4 +84,11 @@ public sealed class TestDatabase
         var update = Builders<Course>.Update.Set(c => c.EnrolledStudents, studentFirebaseUids);
         await courses.UpdateOneAsync(c => c.Id.ToString() == courseId, update);
     }
+
+    internal async Task AddLessonToCourseAsync(string courseId, Lesson lesson)
+    {
+        var courses = _database.GetCollection<Course>("courses");
+        var update = Builders<Course>.Update.Push(c => c.Lessons, lesson);
+        await courses.UpdateOneAsync(c => c.Id.ToString() == courseId, update);
+    }
 }
