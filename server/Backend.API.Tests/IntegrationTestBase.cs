@@ -73,4 +73,18 @@ public abstract class IntegrationTestBase
             DurationInMinutes = 60,
         };
     }
+
+    protected static Student BuildTestStudent(string firebaseUid)
+    {
+        return new Student
+        {
+            Id = ObjectId.GenerateNewId(),
+            FirebaseUid = firebaseUid,
+            Name = "Test",
+            Surname = "Student",
+            Email = "test.student@example.com",
+            Telephone = "000-000",
+            DateOfBirth = new DateTime(2000, 1, 1)
+        };
+    }
 }
