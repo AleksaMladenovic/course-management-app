@@ -1,0 +1,128 @@
+import { test, expect } from './setup.spec';
+
+const makeTestEmail = (prefix: string) => {
+    const stamp = Date.now();
+    return `test-${prefix}-${stamp}@test.com`;
+};
+
+const fillRegisterForm = async (page: any, data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone: string;
+    dob: string;
+    password: string;
+    confirmPassword: string;
+}) => {
+    await page.fill('input[name="firstName"]', data.firstName);
+    await page.fill('input[name="lastName"]', data.lastName);
+    await page.fill('input[name="email"]', data.email);
+    await page.fill('input[name="phone"]', data.phone);
+    await page.fill('input[name="dob"]', data.dob);
+    await page.fill('input[name="password"]', data.password);
+    await page.fill('input[name="confirmPassword"]', data.confirmPassword);
+};
+
+test('registers student successfully', async ({ page }) => {
+    await page.goto('/register');
+
+    await page.getByRole('button', { name: 'STUDENT' }).click();
+
+    await fillRegisterForm(page, {
+        firstName: 'Test',
+        lastName: 'Student',
+        email: makeTestEmail('student'),
+        phone: '+381621111111',
+        dob: '2003-05-11',
+        password: 'test1234',
+        confirmPassword: 'test1234',
+    });
+
+    await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
+
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('button', { name: 'Explore Courses' })).toBeVisible();
+});
+
+test('registers author successfully', async ({ page }) => {
+    await page.goto('/register');
+
+    await page.getByRole('button', { name: 'AUTOR' }).click();
+
+    await fillRegisterForm(page, {
+        firstName: 'Test',
+        lastName: 'Author',
+        email: makeTestEmail('author'),
+        phone: '+381622222222',
+        dob: '1995-10-20',
+        password: 'test1234',
+        confirmPassword: 'test1234',
+    });
+
+    await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
+
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('button', { name: 'Explore Courses' })).toBeVisible();
+});
+
+test('shows required field errors on empty submit', async ({ page }) => {
+    await page.goto('/register');
+
+    await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
+    
+    const form = page.locator('form');
+    await expect(form).toContainText('Ime je obavezno.');
+    await expect(form).toContainText('Prezime je obavezno.');
+    await expect(form).toContainText('Email je obavezan.');
+    await expect(form).toContainText('Telefon je obavezan.');
+    await expect(form).toContainText('Datum rođenja je obavezan.');
+    await expect(form).toContainText('Lozinka je obavezna.');
+});
+
+test('shows format and password mismatch errors', async ({ page }) => {
+    await page.goto('/register');
+    await fillRegisterForm(page, {
+        firstName: 'Test',
+        lastName: 'User',
+        email: 'not-an-email',
+        phone: '123',
+        dob: '2000-01-01',
+        password: 'test1234',
+        confirmPassword: 'different',
+    });
+
+    await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
+
+    const form = page.locator('form');
+    await expect(form).toContainText('Neispravan format email adrese.');
+    await expect(form).toContainText('Neispravan format telefona.');
+    await expect(form).toContainText('Lozinke se ne podudaraju.');
+});
+
+test('shows date validation errors for future date and underage', async ({ page }) => {
+    await page.goto('/register');
+
+    // Buduci datum
+    await fillRegisterForm(page, {
+        firstName: 'Test',
+        lastName: 'User',
+        email: makeTestEmail('date'),
+        phone: '+381621234567',
+        dob: '2999-01-01',
+        password: 'test1234',
+        confirmPassword: 'test1234',
+    });
+
+    await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
+    const form = page.locator('form');
+    await expect(form).toContainText('Datum rođenja ne može biti u budućnosti.');
+
+    // Maloletan korisnik (< 12)
+    const today = new Date();
+    const underageYear = today.getFullYear() - 10;
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const day = String(today.getDate()).padStart(2, '0');
+    await page.fill('input[name="dob"]', `${underageYear}-${month}-${day}`);
+    await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
+    await expect(form).toContainText('Morate imati najmanje 12 godina.');
+});
