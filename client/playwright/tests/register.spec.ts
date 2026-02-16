@@ -126,3 +126,39 @@ test('shows date validation errors for future date and underage', async ({ page 
     await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
     await expect(form).toContainText('Morate imati najmanje 12 godina.');
 });
+
+test('shows error for email that is already registered', async ({ page }) => {
+    await page.goto('/register');
+    const testEmail = makeTestEmail('duplicate');
+    await fillRegisterForm(page, {
+        firstName: 'Test',
+        lastName: 'User',
+        email: testEmail,
+        phone: '+381621234567',
+        dob: '2000-01-01',
+        password: 'test1234',
+        confirmPassword: 'test1234',
+    });
+
+    await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('button', { name: 'Explore Courses' })).toBeVisible();
+    await page.getByRole('button', { name: 'Explore Courses' }).click();
+    await expect(page.getByRole('button', { name: 'Odjavi se' })).toBeVisible();
+    await page.getByRole('button', { name: 'Odjavi se' }).click();
+    await expect(page).toHaveURL('/');
+    await expect(page.getByRole('button', { name: 'REGISTER' })).toBeVisible();
+    await page.getByRole('button', { name: 'REGISTER' }).click();
+    await fillRegisterForm(page, {
+        firstName: 'Test',
+        lastName: 'User',
+        email: testEmail,
+        phone: '+381621234567',
+        dob: '2000-01-01',
+        password: 'test1234',
+        confirmPassword: 'test1234',
+    });
+    await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
+    const form = page.locator('form');
+    await expect(form).toContainText('Email adresa je već u upotrebi.');
+});

@@ -49,7 +49,6 @@ const Register = () => {
             return;
         }
 
-
         try {
             const userCredential = await createUserWithEmailAndPassword(auth, formData.email, formData.password);
             const firebaseUser = userCredential.user;
@@ -88,7 +87,19 @@ const Register = () => {
             login(data);
             navigate("/");
         } catch (err: any) {
-            setError("Greška pri registraciji. Proverite podatke.");
+            if (err.code === "auth/email-already-in-use") {
+                setError("Email adresa je već u upotrebi.");
+            }
+            else if (err.code === "auth/invalid-email") {
+                setError("Neispravan format email adrese.");
+            }
+            else if (err.code === "auth/weak-password") {
+                setError("Lozinka je previše slaba. Mora imati najmanje 6 karaktera.");
+            }
+            else {
+                setError("Greška pri registraciji. Proverite podatke.");
+            } 
+            return;
         }
     };
     const validateForm: () => boolean = () => {
