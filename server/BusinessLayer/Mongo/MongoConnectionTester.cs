@@ -22,6 +22,25 @@ public sealed class MongoConnectionTester : IMongoConnectionTester
         _logger = logger;
     }
 
+    public Task<MongoTestResult> DeleteTestDatabaseAsync(CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(_settings.DatabaseName))
+        {
+            return Task.FromResult(MongoTestResult.Fail("MongoSettings:DatabaseName is missing."));
+        }
+
+        try
+        {
+            _mongoClient.DropDatabase(_settings.DatabaseName, cancellationToken);
+            return Task.FromResult(MongoTestResult.Success( "Test database:" + _settings.DatabaseName + " deleted successfully."));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to delete MongoDB test database");
+            return Task.FromResult(MongoTestResult.Fail(ex.Message));
+        }
+    }
+
     public async Task<MongoTestResult> TestAsync(CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(_settings.DatabaseName))

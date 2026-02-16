@@ -68,6 +68,7 @@ const Login = () => {
                             <input 
                                 type="email" 
                                 required 
+                                name="email"
                                 className="w-full bg-[#1e293b]/40 border border-slate-800 rounded-xl sm:rounded-2xl 
                                            pl-11 sm:pl-12 pr-4 py-3 sm:py-4 
                                            focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all 
@@ -87,6 +88,7 @@ const Login = () => {
                             <input 
                                 type="password" 
                                 required 
+                                name="password"
                                 className="w-full bg-[#1e293b]/40 border border-slate-800 rounded-xl sm:rounded-2xl 
                                            pl-11 sm:pl-12 pr-4 py-3 sm:py-4 
                                            focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all 

@@ -2,7 +2,14 @@ using CommonLayer.Models;
 using Microsoft.Extensions.Options;
 using MongoDB.Driver;
 
+
 var builder = WebApplication.CreateBuilder(args);
+
+// DEBUG: Ispisi trenutno okruzenje i MongoSettings
+var mongoSettings = builder.Configuration.GetSection("MongoSettings").Get<MongoSettings>();
+Console.WriteLine($"[DEBUG] ENV: {builder.Environment.EnvironmentName}");
+Console.WriteLine($"[DEBUG] MongoSettings.ConnectionString: {mongoSettings.ConnectionString}");
+Console.WriteLine($"[DEBUG] MongoSettings.DatabaseName: {mongoSettings.DatabaseName}");
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -13,6 +20,7 @@ builder.Services.Configure<MongoSettings>(builder.Configuration.GetSection("Mong
 builder.Services.AddSingleton<IMongoClient>(serviceProvider =>
 {
     var settings = serviceProvider.GetRequiredService<IOptions<MongoSettings>>().Value;
+
     if (string.IsNullOrWhiteSpace(settings.ConnectionString))
     {
         throw new InvalidOperationException("MongoSettings:ConnectionString is missing.");
@@ -47,7 +55,7 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsEnvironment("Test"))
 {
     app.UseSwagger();
     app.UseSwaggerUI();
@@ -55,7 +63,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowFrontend");
 
-if (!app.Environment.IsDevelopment())
+if (!app.Environment.IsDevelopment() && !app.Environment.IsEnvironment("Test"))
 {
     app.UseHttpsRedirection();
 }

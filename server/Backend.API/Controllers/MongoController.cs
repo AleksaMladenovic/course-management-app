@@ -36,4 +36,31 @@ public sealed class MongoController : ControllerBase
             timestampUtc = DateTime.UtcNow
         });
     }
+
+    [HttpPut("DeleteTestDatabase")]
+    public async Task<IActionResult> DeleteTestDatabase(CancellationToken cancellationToken)
+    {
+        if (!Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT")?.Equals("Test", StringComparison.OrdinalIgnoreCase) ?? true)
+        {
+            return Forbid();
+        }
+        
+        var result = await _tester.DeleteTestDatabaseAsync(cancellationToken);
+        if (result.IsSuccess)
+        {
+            return Ok(new
+            {
+                ok = true,
+                message = result.Message,
+                timestampUtc = DateTime.UtcNow
+            });
+        }
+
+        return StatusCode(StatusCodes.Status503ServiceUnavailable, new
+        {
+            ok = false,
+            message = result.Message,
+            timestampUtc = DateTime.UtcNow
+        });
+    }
 }
