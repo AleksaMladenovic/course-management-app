@@ -1,27 +1,5 @@
-import { test, expect } from './setup.spec';
-
-const makeTestEmail = (prefix: string) => {
-    const stamp = Date.now();
-    return `test-${prefix}-${stamp}@test.com`;
-};
-
-const fillRegisterForm = async (page: any, data: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    dob: string;
-    password: string;
-    confirmPassword: string;
-}) => {
-    await page.fill('input[name="firstName"]', data.firstName);
-    await page.fill('input[name="lastName"]', data.lastName);
-    await page.fill('input[name="email"]', data.email);
-    await page.fill('input[name="phone"]', data.phone);
-    await page.fill('input[name="dob"]', data.dob);
-    await page.fill('input[name="password"]', data.password);
-    await page.fill('input[name="confirmPassword"]', data.confirmPassword);
-};
+import { fillRegisterForm, makeTestEmail } from './helpers';
+import { test, expect } from './setup';
 
 test('registers student successfully', async ({ page }) => {
     await page.goto('/register');
@@ -69,7 +47,7 @@ test('shows required field errors on empty submit', async ({ page }) => {
     await page.goto('/register');
 
     await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
-    
+
     const form = page.locator('form');
     await expect(form).toContainText('Ime je obavezno.');
     await expect(form).toContainText('Prezime je obavezno.');
@@ -161,4 +139,10 @@ test('shows error for email that is already registered', async ({ page }) => {
     await page.getByRole('button', { name: 'REGISTRUJ SE' }).click();
     const form = page.locator('form');
     await expect(form).toContainText('Email adresa je već u upotrebi.');
+});
+
+test('can navigate to login page from register', async ({ page }) => {
+    await page.goto('/register');
+    await page.getByRole('link', { name: 'Prijavi se' }).click();
+    await expect(page).toHaveURL('/login');
 });

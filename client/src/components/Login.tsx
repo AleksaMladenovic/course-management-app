@@ -11,12 +11,19 @@ import { useAuth } from "../context/AuthContext";
 
 const Login = () => {
     const [email, setEmail] = useState("");
+    const [emailError, setEmailError] = useState<string | null>(null);
     const [password, setPassword] = useState("");
+    const [passwordError, setPasswordError] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const navigate = useNavigate();
     const { login } = useAuth();
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault();
+
+        if (!validateForm()) {
+            return;
+        }
+
         try {
             const userCredential = await signInWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
@@ -25,106 +32,139 @@ const Login = () => {
             console.log("User data from backend:", userData);
             login(userData);
             navigate("/");
-        } catch (err) {
-            setError("Pogrešan email ili lozinka.");
+        } catch (err: any) {
+            console.error("Login error:", err);
+            const code = err?.code || err?.error?.code;
+            if (code === "auth/invalid-credential") {
+                setError("Pogrešan email ili lozinka.");
+            } else {
+                setError("Došlo je do greške. Pokušajte ponovo.");
+            }
         }
     };
 
-    return (
-    <div className="fixed inset-0 w-full h-full bg-[#020617] flex items-center justify-center overflow-y-auto overflow-x-hidden">
-        
-        {/* Pozadinski efekti - koristimo fixed da se ne pomeraju pri skrolovanju */}
-        <div className="fixed inset-0 pointer-events-none">
-            <div className="absolute top-[-10%] left-[-10%] w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-indigo-500/10 blur-[80px] sm:blur-[130px] rounded-full" />
-            <div className="absolute bottom-[-10%] right-[-10%] w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-blue-600/5 blur-[80px] sm:blur-[130px] rounded-full" />
-        </div>
+    const validateEmail = (email: string) => {
+        if (!email) {
+            setEmailError("Email je obavezan.");
+            return false;
+        }
+        setEmailError(null);
+        return true;
+    }
 
-        {/* Glavni kontejner koji omogućava vertikalni margin na malim ekranima */}
-        <div className="min-h-full w-full flex items-center justify-center p-4 sm:p-6 md:p-8">
-            <motion.div 
-                initial={{ opacity: 0, y: 15 }}
-                animate={{ opacity: 1, y: 0 }}
-                // Responsive širina i padding
-                className="w-full max-w-[420px] bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 
+    const validatePassword = (password: string) => {
+        if (!password) {
+            setPasswordError("Lozinka je obavezna.");
+            return false;
+        }
+        setPasswordError(null);
+        return true;
+    }
+    const validateForm = () => {
+        const isEmailValid = validateEmail(email);
+        const isPasswordValid = validatePassword(password);
+        return isEmailValid && isPasswordValid;
+    }
+
+    return (
+        <div className="fixed inset-0 w-full h-full bg-[#020617] flex items-center justify-center overflow-y-auto overflow-x-hidden">
+
+            {/* Pozadinski efekti - koristimo fixed da se ne pomeraju pri skrolovanju */}
+            <div className="fixed inset-0 pointer-events-none">
+                <div className="absolute top-[-10%] left-[-10%] w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-indigo-500/10 blur-[80px] sm:blur-[130px] rounded-full" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[300px] sm:w-[600px] h-[300px] sm:h-[600px] bg-blue-600/5 blur-[80px] sm:blur-[130px] rounded-full" />
+            </div>
+
+            {/* Glavni kontejner koji omogućava vertikalni margin na malim ekranima */}
+            <div className="min-h-full w-full flex items-center justify-center p-4 sm:p-6 md:p-8">
+                <motion.div
+                    initial={{ opacity: 0, y: 15 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    // Responsive širina i padding
+                    className="w-full max-w-[420px] bg-[#0f172a]/40 backdrop-blur-3xl border border-white/5 
                            p-6 sm:p-10 md:p-12 
                            rounded-[2rem] sm:rounded-[2.5rem] 
                            shadow-2xl relative z-10 my-auto"
-            >
-                {/* Header sekcija */}
-                <div className="text-center mb-8 sm:mb-10">
-                    <div className="inline-flex p-3 sm:p-4 bg-indigo-500/10 rounded-2xl mb-4 sm:mb-6">
-                        <LogIn className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400" />
+                >
+                    {/* Header sekcija */}
+                    <div className="text-center mb-8 sm:mb-10">
+                        <div className="inline-flex p-3 sm:p-4 bg-indigo-500/10 rounded-2xl mb-4 sm:mb-6">
+                            <LogIn className="w-6 h-6 sm:w-8 sm:h-8 text-indigo-400" />
+                        </div>
+                        <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Prijavi se</h2>
+                        <p className="text-slate-400 mt-2 text-xs sm:text-sm">Unesite podatke za pristup platformi</p>
                     </div>
-                    <h2 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">Prijavi se</h2>
-                    <p className="text-slate-400 mt-2 text-xs sm:text-sm">Unesite podatke za pristup platformi</p>
-                </div>
 
-                <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
-                    {/* Email polje */}
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Email adresa</label>
-                        <div className="relative group">
-                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-                            <input 
-                                type="email" 
-                                required 
-                                name="email"
-                                className="w-full bg-[#1e293b]/40 border border-slate-800 rounded-xl sm:rounded-2xl 
+                    <form onSubmit={handleLogin} className="space-y-4 sm:space-y-6">
+                        {/* Email polje */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Email adresa</label>
+                            <div className="relative group">
+                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                                <input
+                                    type="email"
+                                    name="email"
+                                    className="w-full bg-[#1e293b]/40 border border-slate-800 rounded-xl sm:rounded-2xl 
                                            pl-11 sm:pl-12 pr-4 py-3 sm:py-4 
                                            focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all 
-                                           text-sm sm:text-base text-white placeholder:text-slate-600" 
-                                placeholder="tvoj@email.com" 
-                                value={email}
-                                onChange={(e) => setEmail(e.target.value)}
-                            />
-                        </div>
-                    </div>
+                                           text-sm sm:text-base text-white placeholder:text-slate-600"
+                                    placeholder="tvoj@email.com"
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                />
+                            </div>
+                            {emailError && <p className="text-red-500 text-sm mt-1">{emailError}</p>}
 
-                    {/* Password polje */}
-                    <div className="space-y-2">
-                        <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Lozinka</label>
-                        <div className="relative group">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
-                            <input 
-                                type="password" 
-                                required 
-                                name="password"
-                                className="w-full bg-[#1e293b]/40 border border-slate-800 rounded-xl sm:rounded-2xl 
+                        </div>
+
+                        {/* Password polje */}
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold uppercase tracking-widest text-slate-500 ml-1">Lozinka</label>
+                            <div className="relative group">
+                                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 sm:w-5 sm:h-5 text-slate-500 group-focus-within:text-indigo-400 transition-colors" />
+                                <input
+                                    type="password"
+                                    name="password"
+                                    className="w-full bg-[#1e293b]/40 border border-slate-800 rounded-xl sm:rounded-2xl 
                                            pl-11 sm:pl-12 pr-4 py-3 sm:py-4 
                                            focus:ring-2 focus:ring-indigo-500/50 outline-none transition-all 
-                                           text-sm sm:text-base text-white placeholder:text-slate-600" 
-                                placeholder="••••••••" 
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                            />
-                        </div>
-                    </div>
+                                           text-sm sm:text-base text-white placeholder:text-slate-600"
+                                    placeholder="••••••••"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                />
+                            </div>
+                            {passwordError && <p className="text-red-500 text-sm mt-1">{passwordError}</p>}
 
-                    {/* Submit dugme */}
-                    <button
-                        type="submit"
-                        className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold 
+                        </div>
+                        {/* Prikaz greške ako postoji */}
+                        {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+
+                        {/* Submit dugme */}
+                        <button
+                            type="submit"
+                            className="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-bold 
                                    py-3 sm:py-4 rounded-xl sm:rounded-2xl 
                                    transition-all shadow-[0_10px_30px_-10px_rgba(79,70,229,0.5)] 
                                    active:scale-[0.98] text-sm sm:text-base"
-                    >
-                        Prijavi se
-                    </button>
-                </form>
+                        >
+                            Prijavi se
+                        </button>
+                    </form>
 
-                {/* Footer link */}
-                <div className="mt-8 sm:mt-10 text-center">
-                    <p className="text-slate-500 text-xs sm:text-sm">
-                        Nemaš nalog?{" "}
-                        <Link to="/register" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors underline-offset-4 hover:underline">
-                            Registruj se
-                        </Link>
-                    </p>
-                </div>
-            </motion.div>
+                    {/* Footer link */}
+                    <div className="mt-8 sm:mt-10 text-center">
+                        <p className="text-slate-500 text-xs sm:text-sm">
+                            Nemaš nalog?{" "}
+                            <Link to="/register" className="text-indigo-400 font-bold hover:text-indigo-300 transition-colors underline-offset-4 hover:underline">
+                                Registruj se
+                            </Link>
+                        </p>
+                    </div>
+                </motion.div>
+            </div>
         </div>
-    </div>
-);
+    );
 };
 
 export default Login;
