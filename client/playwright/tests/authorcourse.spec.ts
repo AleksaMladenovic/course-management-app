@@ -1,5 +1,5 @@
 import { test, expect } from './setup';
-import { fillRegisterForm, loginUser, makeTestEmail } from './helpers';
+import { fillRegisterForm, loginUser, makeTestEmail, addLessonHelper } from './helpers';
 import DificultyType, { DificultyTypeToString } from '../../src/enums/DificultyType';
 import { execSync } from 'child_process';
 
@@ -235,6 +235,24 @@ test.describe.serial('Author Course CRUD Operations', () => {
         });
 
         test.describe('Edit Lesson', () => {
+            test.beforeAll(async ({ browser }) => {
+                // Ensure there's at least one lesson for edit tests
+                const context = await browser.newContext();
+                const page = await context.newPage();
+                page.on('dialog', async dialog => dialog.accept());
+                
+                await loginUser(page, authorEmail, password);
+                await page.goto(`/course/${courseId}`);
+                await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId}`) && res.status() === 200);
+                
+                const lessonCount = await page.locator('.lesson-div').count();
+                if (lessonCount === 0) {
+                    await addLessonHelper(page, 'Test Lesson for Editing', 45, 'This is a test lesson created for editing tests with sufficient description.');
+                }
+                
+                await context.close();
+            });
+
             test('successfully edits a lesson', async ({ page }) => {
                 await page.goto(`/course/${courseId}`);
                 await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId}`) && res.status() === 200);
@@ -327,10 +345,35 @@ test.describe.serial('Author Course CRUD Operations', () => {
         });
 
         test.describe('Delete Lesson', () => {
+            test.beforeAll(async ({ browser }) => {
+                // Ensure there are at least 2 lessons for delete tests
+                const context = await browser.newContext();
+                const page = await context.newPage();
+                page.on('dialog', async dialog => dialog.accept());
+                
+                await loginUser(page, authorEmail, password);
+                await page.goto(`/course/${courseId}`);
+                await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId}`) && res.status() === 200);
+                
+                const lessonCount = await page.locator('.lesson-div').count();
+                const lessonsToAdd = Math.max(0, 2 - lessonCount);
+                
+                for (let i = 0; i < lessonsToAdd; i++) {
+                    await addLessonHelper(
+                        page, 
+                        `Test Lesson for Deletion ${i + 1}`, 
+                        30, 
+                        'This is a test lesson created for deletion tests with sufficient description content.'
+                    );
+                }
+                
+                await context.close();
+            });
+
             test('successfully deletes a lesson', async ({ page }) => {
                 await page.goto(`/course/${courseId}`);
                 await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId}`) && res.status() === 200);
-
+                
                 const lessonCount = await page.locator('.lesson-div').count();
                 const lastLesson = page.locator('.lesson-div').last();
                 const lessonNameToDelete = await lastLesson.locator('.lesson-name').textContent();
@@ -338,6 +381,13 @@ test.describe.serial('Author Course CRUD Operations', () => {
                 await lastLesson.locator('.delete-lesson-button').click({ force: true });
 
                 await page.waitForResponse(res => res.url().includes('/Lessons/deleteLesson/') && res.status() === 200);
+
+                // Wait for the UI to update
+                await page.waitForFunction(
+                    (expectedCount) => document.querySelectorAll('.lesson-div').length === expectedCount,
+                    lessonCount - 1,
+                    { timeout: 5000 }
+                );
 
                 const newLessonCount = await page.locator('.lesson-div').count();
                 expect(newLessonCount).toBe(lessonCount - 1);
@@ -354,6 +404,14 @@ test.describe.serial('Author Course CRUD Operations', () => {
                     const firstLesson = page.locator('.lesson-div').first();
                     await firstLesson.locator('.delete-lesson-button').click({ force: true });
                     await page.waitForResponse(res => res.url().includes('/Lessons/deleteLesson/') && res.status() === 200);
+                    
+                    // Wait for the UI to update
+                    await page.waitForFunction(
+                        (currentCount) => document.querySelectorAll('.lesson-div').length === currentCount - 1,
+                        lessonCount,
+                        { timeout: 5000 }
+                    );
+                    
                     lessonCount = await page.locator('.lesson-div').count();
                 }
 

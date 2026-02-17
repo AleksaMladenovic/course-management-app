@@ -56,3 +56,17 @@ export const loginUser = async (page: any, email: string, password: string) => {
   await page.getByRole('button', { name: 'Prijavi se' }).click();
   await page.waitForURL('/');
 };
+
+// Helper function to add a lesson
+export const addLessonHelper = async (page: any, lessonName: string, duration: number, description: string) => {
+  await page.locator('.add-lesson-button').click();
+  const lessonForm = page.getByText('Nova Lekcija').locator('..');
+  await lessonForm.locator('input').first().fill(lessonName);
+  await lessonForm.locator('input[type="number"]').fill(String(duration));
+  await lessonForm.locator('textarea').fill(description);
+  await Promise.all([
+    page.waitForResponse((res: any) => res.url().includes('/Lessons/addLesson/') && res.status() === 200),
+    page.locator('.save-lesson-button').click(),
+  ]);
+  await page.waitForSelector('.lesson-div .lesson-name');
+};

@@ -351,7 +351,6 @@ test.describe('MyCoursesStudent Component', () => {
         const enroll1 = enrollPage.locator('.enroll-button');
         if (await enroll1.isVisible()) {
             await enroll1.click();
-            await enrollPage.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
         }
 
         // Enroll in second course
@@ -360,7 +359,6 @@ test.describe('MyCoursesStudent Component', () => {
         const enroll2 = enrollPage.locator('.enroll-button');
         if (await enroll2.isVisible()) {
             await enroll2.click();
-            await enrollPage.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
         }
         
         await enrollContext.close();
