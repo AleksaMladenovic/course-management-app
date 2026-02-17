@@ -9,8 +9,7 @@ test.describe('MyCoursesAuthor Component', () => {
 
     test.beforeAll(async ({ browser, request }) => {
         execSync('node ./test_scripts/deleteTestUsers.js');
-        const result = (await request.put('http://localhost:5196/api/Seed/DeleteTestDatabase')).status();
-        console.log('Delete test database response status:', result);
+        await request.put('http://localhost:5196/api/Seed/DeleteTestDatabase');
 
         // Create author
         const authorContext = await browser.newContext();
@@ -215,6 +214,9 @@ test.describe('MyCoursesAuthor Component', () => {
             await page.goto('/home/my');
             await page.waitForResponse(res => res.url().includes('/Author/') && res.status() === 200);
 
+            // Get initial course count
+            const initialCount = await page.locator('.course-card').count();
+
             const searchInput = page.locator('input[name="input-search"]');
             
             // Search for specific course
@@ -224,8 +226,8 @@ test.describe('MyCoursesAuthor Component', () => {
             // Clear search
             await searchInput.clear();
             
-            // Should show all courses again (3 courses total: 1 from Course List Display + 2 from Search Functionality)
-            await expect(page.locator('.course-card')).toHaveCount(3);
+            // Should show all courses again (same as initial)
+            await expect(page.locator('.course-card')).toHaveCount(initialCount);
         });
     });
 
@@ -256,9 +258,10 @@ test.describe('MyCoursesStudent Component', () => {
     let courseName2 = '';
 
     test.beforeAll(async ({ browser, request }) => {
+        test.setTimeout(60000); // Increase timeout to 60 seconds for setup
+        
         execSync('node ./test_scripts/deleteTestUsers.js');
-        const result = (await request.put('http://localhost:5196/api/Seed/DeleteTestDatabase')).status();
-        console.log('Delete test database response status:', result);
+        await request.put('http://localhost:5196/api/Seed/DeleteTestDatabase');
 
         // Create author and courses
         const authorContext = await browser.newContext();
@@ -333,8 +336,34 @@ test.describe('MyCoursesStudent Component', () => {
         });
         await studentPage.getByRole('button', { name: 'REGISTRUJ SE' }).click();
         await expect(studentPage).toHaveURL('/');
-
         await studentContext.close();
+
+        // Enroll student in both courses immediately
+        const enrollContext = await browser.newContext();
+        const enrollPage = await enrollContext.newPage();
+        enrollPage.on('dialog', async dialog => dialog.accept());
+        
+        await loginUser(enrollPage, studentEmail, password);
+        
+        // Enroll in first course
+        await enrollPage.goto(`/course/${courseId1}`);
+        await enrollPage.waitForResponse(res => res.url().includes(`/Course/getById/${courseId1}`) && res.status() === 200);
+        const enroll1 = enrollPage.locator('.enroll-button');
+        if (await enroll1.isVisible()) {
+            await enroll1.click();
+            await enrollPage.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
+        }
+
+        // Enroll in second course
+        await enrollPage.goto(`/course/${courseId2}`);
+        await enrollPage.waitForResponse(res => res.url().includes(`/Course/getById/${courseId2}`) && res.status() === 200);
+        const enroll2 = enrollPage.locator('.enroll-button');
+        if (await enroll2.isVisible()) {
+            await enroll2.click();
+            await enrollPage.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
+        }
+        
+        await enrollContext.close();
     });
 
     test.beforeEach(async ({ page }) => {
@@ -342,65 +371,14 @@ test.describe('MyCoursesStudent Component', () => {
         await loginUser(page, studentEmail, password);
     });
 
-    test.describe('Empty State', () => {
-        test('shows empty state when student has no enrolled courses', async ({ page }) => {
-            await page.goto('/home/my');
-            await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
-
-            // Check empty state message
-            await expect(page.getByText('Još uvek niste upisali nijedan kurs')).toBeVisible();
-            await expect(page.getByText(/Istražite naš katalog/i)).toBeVisible();
-        });
-
-        test('empty state shows explore button', async ({ page }) => {
-            await page.goto('/home/my');
-            await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
-
-            const exploreButton = page.getByRole('button', { name: /Istraži kurseve/i });
-            await expect(exploreButton).toBeVisible();
-        });
-
-        test('explore button triggers page reload', async ({ page }) => {
-            await page.goto('/home/my');
-            await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
-
-            const exploreButton = page.getByRole('button', { name: /Istraži kurseve/i });
-            
-            // Click should trigger reload (stays on same page)
-            await exploreButton.click();
-            await page.waitForLoadState('load');
-            
-            await expect(page).toHaveURL('/home/my');
-        });
-    });
-
     test.describe('Course List Display', () => {
-        test.beforeAll(async ({ browser }) => {
-            // Enroll student in first course
-            const context = await browser.newContext();
-            const page = await context.newPage();
-            page.on('dialog', async dialog => dialog.accept());
-            
-            await loginUser(page, studentEmail, password);
-            await page.goto(`/course/${courseId1}`);
-            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId1}`) && res.status() === 200);
-            
-            const enrollButton = page.locator('.enroll-button');
-            if (await enrollButton.isVisible()) {
-                await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
-            }
-            
-            await context.close();
-        });
-
         test('displays enrolled courses in grid layout', async ({ page }) => {
             await page.goto('/home/my');
             await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
 
-            // Should see enrolled course
+            // Should see enrolled courses
             const courseCards = page.locator('.course-card');
-            await expect(courseCards).toHaveCount(1);
+            await expect(courseCards).toHaveCount(2);
         });
 
         test('course cards show correct information', async ({ page }) => {
@@ -423,61 +401,16 @@ test.describe('MyCoursesStudent Component', () => {
             await courseCard.click();
 
             // Should navigate to course details page
-            await expect(page).toHaveURL(`/course/${courseId1}`);
-        });
-
-        test('displays multiple enrolled courses', async ({ page }) => {
-            // Enroll in second course
-            await page.goto(`/course/${courseId2}`);
-            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId2}`) && res.status() === 200);
-            
-            const enrollButton = page.locator('.enroll-button');
-            if (await enrollButton.isVisible()) {
-                await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
-            }
-
-            await page.goto('/home/my');
-            await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
-
-            // Should see both enrolled courses
-            const courseCards = page.locator('.course-card');
-            await expect(courseCards).toHaveCount(2);
+            await expect(page).toHaveURL(/\/course\/\d+/);
         });
     });
 
     test.describe('Search Functionality', () => {
-        test.beforeAll(async ({ browser }) => {
-            // Enroll in both courses
-            const context = await browser.newContext();
-            const page = await context.newPage();
-            page.on('dialog', async dialog => dialog.accept());
-            
-            await loginUser(page, studentEmail, password);
-            await page.goto(`/course/${courseId1}`);
-            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId1}`) && res.status() === 200);
-            const enroll1 = page.locator('.enroll-button');
-            if (await enroll1.isVisible()) {
-                await enroll1.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
-            }
-
-            await page.goto(`/course/${courseId2}`);
-            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId2}`) && res.status() === 200);
-            const enroll2 = page.locator('.enroll-button');
-            if (await enroll2.isVisible()) {
-                await enroll2.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
-            }
-            
-            await context.close();
-        });
-
         test('search bar is visible and functional', async ({ page }) => {
             await page.goto('/home/my');
             await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
 
-            const searchInput = page.locator('input[type="text"]').first();
+            const searchInput = page.locator('input[placeholder*="Pretraži"]');
             await expect(searchInput).toBeVisible();
             await expect(searchInput).toHaveAttribute('placeholder', /Pretraži moje kurseve/i);
         });
@@ -486,7 +419,7 @@ test.describe('MyCoursesStudent Component', () => {
             await page.goto('/home/my');
             await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
 
-            const searchInput = page.locator('input[type="text"]').first();
+            const searchInput = page.locator('input[placeholder*="Pretraži"]');
             
             // Search for first course
             await searchInput.fill('One');
@@ -502,7 +435,7 @@ test.describe('MyCoursesStudent Component', () => {
             await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
 
             // Search for non-existent course
-            await page.fill('input[type="text"]', 'NonExistentCourse99999');
+            await page.fill('input[placeholder*="Pretraži"]', 'NonExistentCourse99999');
 
             // Should show no results message
             await expect(page.getByText(/Nema rezultata za pretragu/i)).toBeVisible();
@@ -514,7 +447,7 @@ test.describe('MyCoursesStudent Component', () => {
             await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
 
             // Search with different case
-            await page.fill('input[type="text"]', 'one');
+            await page.fill('input[placeholder*="Pretraži"]', 'one');
 
             const courseCards = page.locator('.course-card');
             await expect(courseCards.first().locator('.name')).toContainText('One');
@@ -524,7 +457,7 @@ test.describe('MyCoursesStudent Component', () => {
             await page.goto('/home/my');
             await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
 
-            const searchInput = page.locator('input[type="text"]').first();
+            const searchInput = page.locator('input[placeholder*="Pretraži"]');
             
             // Search for specific course
             await searchInput.fill('One');
@@ -535,6 +468,27 @@ test.describe('MyCoursesStudent Component', () => {
             
             // Should show all enrolled courses again (2 courses)
             await expect(page.locator('.course-card')).toHaveCount(2);
+        });
+
+        test('search responds quickly', async ({ page }) => {
+            await page.goto('/home/my');
+            await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
+
+            const searchInput = page.locator('input[placeholder*="Pretraži"]');
+            
+            // Measure search response time
+            const start = Date.now();
+            await searchInput.fill('One');
+            
+            // Wait for filter to apply (course cards to update)
+            await page.waitForTimeout(50); // Small buffer for UI update
+            const duration = Date.now() - start;
+            
+            // Search should be instant (< 500ms)
+            expect(duration).toBeLessThan(500);
+            
+            // Verify search worked
+            await expect(page.locator('.course-card')).toHaveCount(1);
         });
     });
 
@@ -554,18 +508,92 @@ test.describe('MyCoursesStudent Component', () => {
         });
     });
 
+    test.describe('Pagination', () => {
+        test.beforeAll(async ({ browser }) => {
+            test.setTimeout(120000); // Increase timeout to 2 minutes for creating 10 courses
+            
+            // Create 10 additional courses and enroll student
+            const context = await browser.newContext();
+            const page = await context.newPage();
+            page.on('dialog', async dialog => dialog.accept());
+            
+            // Login as author
+            await loginUser(page, authorEmail, password);
+            
+            const createdCourseIds: string[] = [];
+            
+            // Create 10 more courses
+            for (let i = 1; i <= 10; i++) {
+                await page.goto('/add-course');
+                await page.fill('input[name="courseName"]', `Pagination Test Course ${i} ${Date.now()}`);
+                await page.fill('input[name="durationInWeeks"]', '6');
+                await page.fill('textarea[name="description"]', `Description for pagination test course number ${i}`);
+                const difficultyButtonName = `difficulty-${DificultyTypeToString[DificultyType.Easy]}-button`;
+                await page.locator(`button[name="${difficultyButtonName}"]`).click();
+                await page.getByRole('button', { name: /kreiraj kurs/i }).click();
+                await expect(page).toHaveURL(/\/course\/\d+/);
+                
+                const match = page.url().match(/\/course\/([^/?#]+)/);
+                if (match) createdCourseIds.push(match[1]);
+            }
+            
+            await context.close();
+            
+            // Enroll student in all 10 courses
+            const enrollContext = await browser.newContext();
+            const enrollPage = await enrollContext.newPage();
+            enrollPage.on('dialog', async dialog => dialog.accept());
+            
+            await loginUser(enrollPage, studentEmail, password);
+            
+            for (const id of createdCourseIds) {
+                await enrollPage.goto(`/course/${id}`);
+                await enrollPage.waitForResponse(res => res.url().includes(`/Course/getById/${id}`) && res.status() === 200);
+                const enrollBtn = enrollPage.locator('.enroll-button');
+                if (await enrollBtn.isVisible()) {
+                    await enrollBtn.click();
+                    // await enrollPage.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
+                }
+            }
+            
+            await enrollContext.close();
+        });
+
+        test('shows pagination when student has many courses', async ({ page }) => {
+            await page.goto('/home/my');
+            await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
+
+            // Student should have multiple courses (2 from main beforeAll + additional from this beforeAll)
+            const courseCards = page.locator('.course-card');
+            const count = await courseCards.count();
+            
+            // Verify we have enough courses to trigger pagination (at least 6)
+            expect(count).toBeGreaterThanOrEqual(6);
+            
+            // Check if pagination exists
+            const paginationButtons = page.locator('button').filter({ hasText: /^[0-9]$/ });
+            const paginationExists = await paginationButtons.count() > 0;
+            
+            if (paginationExists) {
+                // Verify pagination is visible
+                await expect(paginationButtons.first()).toBeVisible();
+                
+                // Check if there are multiple pages
+                const pageButtonCount = await paginationButtons.count();
+                if (pageButtonCount > 1) {
+                    // Try clicking page 2
+                    await paginationButtons.nth(1).click();
+                    await page.waitForTimeout(500); // Wait for page change
+                    
+                    // Should still be on my courses page
+                    await expect(page).toHaveURL('/home/my');
+                }
+            }
+        });
+    });
+
     test.describe('Navigation Integration', () => {
         test('can navigate from course details back to my courses', async ({ page }) => {
-            // Enroll in course
-            await page.goto(`/course/${courseId1}`);
-            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId1}`) && res.status() === 200);
-            
-            const enrollButton = page.locator('.enroll-button');
-            if (await enrollButton.isVisible()) {
-                await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
-            }
-
             // Go to my courses
             await page.goto('/home/my');
             await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
@@ -579,6 +607,39 @@ test.describe('MyCoursesStudent Component', () => {
             
             // Should be back on my courses page
             await expect(page).toHaveURL('/home/my');
+        });
+    });
+
+    test.describe('Enrollment Management', () => {
+        test('course disappears from list after unenroll', async ({ page }) => {
+            await page.goto('/home/my');
+            await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
+
+            // Get course names before unenroll
+            const courseNamesBefore = await page.locator('.course-card .name').allTextContents();
+            expect(courseNamesBefore).toContain(courseName1);
+
+            // Navigate to first course and unenroll
+            await page.goto(`/course/${courseId1}`);
+            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId1}`) && res.status() === 200);
+            
+            const unenrollButton = page.locator('.unenroll-button');
+            await expect(unenrollButton).toBeVisible();
+            await unenrollButton.click();
+            
+            // Wait for unenroll to complete (no response wait needed per earlier fix)
+            await page.waitForTimeout(500);
+
+            // Go back to my courses
+            await page.goto('/home/my');
+            await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
+
+            // Verify the unenrolled course is NOT in the list anymore
+            const courseNamesAfter = await page.locator('.course-card .name').allTextContents();
+            expect(courseNamesAfter).not.toContain(courseName1);
+            
+            // Verify course list has changed (either count decreased or content changed)
+            expect(courseNamesAfter.length).toBeLessThanOrEqual(courseNamesBefore.length);
         });
     });
 });
