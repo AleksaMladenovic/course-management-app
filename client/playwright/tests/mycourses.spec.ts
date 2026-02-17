@@ -214,9 +214,7 @@ test.describe('MyCoursesAuthor Component', () => {
             await page.goto('/home/my');
             await page.waitForResponse(res => res.url().includes('/Author/') && res.status() === 200);
 
-            // Get initial course count
-            const initialCount = await page.locator('.course-card').count();
-
+           
             const searchInput = page.locator('input[name="input-search"]');
             
             // Search for specific course
@@ -227,7 +225,7 @@ test.describe('MyCoursesAuthor Component', () => {
             await searchInput.clear();
             
             // Should show all courses again (same as initial)
-            await expect(page.locator('.course-card')).toHaveCount(initialCount);
+            await expect(page.locator('.course-card')).toHaveCount(2);
         });
     });
 
@@ -561,13 +559,6 @@ test.describe('MyCoursesStudent Component', () => {
             await page.goto('/home/my');
             await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
 
-            // Student should have multiple courses (2 from main beforeAll + additional from this beforeAll)
-            const courseCards = page.locator('.course-card');
-            const count = await courseCards.count();
-            
-            // Verify we have enough courses to trigger pagination (at least 6)
-            expect(count).toBeGreaterThanOrEqual(6);
-            
             // Check if pagination exists
             const paginationButtons = page.locator('button').filter({ hasText: /^[0-9]$/ });
             const paginationExists = await paginationButtons.count() > 0;

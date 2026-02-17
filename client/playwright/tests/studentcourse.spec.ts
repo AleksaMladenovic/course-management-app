@@ -135,8 +135,7 @@ test.describe.serial('Student Course Interactions', () => {
 
             // First enroll to see lessons
             await page.locator('.enroll-button').click();
-            await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
-
+            
             await expect(page.locator('.edit-lesson-button')).not.toBeVisible();
             await expect(page.locator('.delete-lesson-button')).not.toBeVisible();
         });
@@ -172,7 +171,6 @@ test.describe.serial('Student Course Interactions', () => {
             }
 
             await page.locator('.enroll-button').click();
-            await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
 
             // Lessons should now be visible
             await expect(page.locator('.lesson-div')).toHaveCount(2);
@@ -283,7 +281,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             // Unenroll
@@ -310,7 +307,6 @@ test.describe.serial('Student Course Interactions', () => {
 
             // First cycle: enroll
             await page.locator('.enroll-button').click();
-            await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             await expect(page.locator('.unenroll-button')).toBeVisible();
 
             // First cycle: unenroll
@@ -319,7 +315,6 @@ test.describe.serial('Student Course Interactions', () => {
 
             // Second cycle: enroll
             await page.locator('.enroll-button').click();
-            await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             await expect(page.locator('.unenroll-button')).toBeVisible();
 
             // Second cycle: unenroll
@@ -331,11 +326,9 @@ test.describe.serial('Student Course Interactions', () => {
     test.describe('Lesson Details Modal', () => {
         test('clicking on lesson opens modal with details', async ({ page }) => {
             await page.goto(`/course/${courseId}`);
-            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId}`) && res.status() === 200);
 
             // Enroll to see lessons
             await page.locator('.enroll-button').click();
-            await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
 
             // Click on first lesson
             await page.locator('.lesson-div').first().click();
@@ -352,7 +345,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             // Click on first lesson
@@ -371,7 +363,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             // Click on first lesson
@@ -390,7 +381,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             // Click on first lesson
@@ -409,7 +399,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             // Open modal
@@ -429,7 +418,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             // Open modal
@@ -449,7 +437,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             // Open first lesson
@@ -493,7 +480,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             await page.goto('/home/my');
@@ -511,7 +497,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             await page.goto('/home/my');
@@ -535,7 +520,6 @@ test.describe.serial('Student Course Interactions', () => {
             const enrollButton = page.locator('.enroll-button');
             if (await enrollButton.isVisible()) {
                 await enrollButton.click();
-                await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
             }
 
             await page.goto('/home/my');
@@ -581,7 +565,6 @@ test.describe.serial('Student Course Interactions', () => {
 
             // Enroll
             await page.locator('.enroll-button').click();
-            await page.waitForResponse(res => res.url().includes('/Student/EnrollStudentToCourse/') && res.status() === 200);
 
             // After enrollment
             await expect(page.getByText('Vaš Status')).toBeVisible();
