@@ -11,7 +11,7 @@ const AddCourseCard = () => {
     return (
         <div 
             onClick={handleClick}
-            className="group relative h-full min-h-[320px] flex flex-col items-center justify-center 
+            className="add-course-card group relative h-full min-h-[320px] flex flex-col items-center justify-center 
                        bg-white/[0.02] border-2 border-dashed border-white/10 rounded-[2rem] p-8 
                        transition-all duration-500 hover:border-blue-500/50 hover:bg-blue-500/5 
                        cursor-pointer overflow-hidden"
