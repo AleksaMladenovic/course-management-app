@@ -175,6 +175,54 @@ test.describe.serial('Course Details - author and student flows', () => {
             ).toBeVisible();
             await expect(page.getByRole('button', { name: /vrati se nazad/i })).toBeVisible();
         });
+
+        test('enrolled student does not see enroll button after page reload', async ({ page }) => {
+            await page.goto(`/course/${courseId}`);
+            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId}`) && res.status() === 200);
+
+            // Prvo proveri trenutno stanje - ako nije enrolled, upiši se
+            const enrollButton = page.locator('.enroll-button');
+            const unenrollButton = page.locator('.unenroll-button');
+            
+            const isEnrolled = await unenrollButton.isVisible().catch(() => false);
+            
+            if (!isEnrolled) {
+                // Ako nije upisan, upiši se
+                await expect(enrollButton).toBeVisible();
+                await enrollButton.click();
+                await expect(unenrollButton).toBeVisible();
+            }
+            
+            // Sada reload stranice
+            await page.reload();
+            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId}`) && res.status() === 200);
+            
+            // Proveri da enroll dugme nije vidljivo
+            await expect(enrollButton).not.toBeVisible();
+            
+            // Ali unenroll dugme treba da je vidljivo
+            await expect(unenrollButton).toBeVisible();
+        });
+
+        test('student can view lessons after enrollment', async ({ page }) => {
+            await page.goto(`/course/${courseId}`);
+            await page.waitForResponse(res => res.url().includes(`/Course/getById/${courseId}`) && res.status() === 200);
+
+            // Proveri da je enrolled (ili se upiši ako nije)
+            const enrollButton = page.locator('.enroll-button');
+            const unenrollButton = page.locator('.unenroll-button');
+            
+            const isEnrolled = await unenrollButton.isVisible().catch(() => false);
+            
+            if (!isEnrolled && await enrollButton.isVisible()) {
+                await enrollButton.click();
+                await expect(unenrollButton).toBeVisible();
+            }
+            
+            // Nakon upisa (ili ako je već upisan), lekcije treba da budu vidljive
+            await expect(page.locator('.lesson-div .lesson-name')).toContainText(lessonName);
+            await expect(page.locator('.lesson-div .lesson-duration')).toContainText(`${lessonDuration}`);
+        });
     });
 });
 

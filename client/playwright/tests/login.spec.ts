@@ -125,3 +125,27 @@ test('can navigate to register page from login', async ({ page }) => {
     await page.getByRole('link', { name: 'Registruj se' }).click();
     await expect(page).toHaveURL('/register');
 });
+
+test('shows validation error for empty email only', async ({ page }) => {
+    await page.goto('/login');
+    
+    // Unesi samo password
+    await page.fill('input[type="password"]', 'somepassword123');
+    await page.getByRole('button', { name: 'Prijavi se' }).click();
+    
+    // Očekuj validation poruku za email
+    const form = page.locator('form');
+    await expect(form).toContainText('Email je obavezan.');
+});
+
+test('shows validation error for empty password only', async ({ page }) => {
+    await page.goto('/login');
+    
+    // Unesi samo email
+    await page.fill('input[type="email"]', 'test@example.com');
+    await page.getByRole('button', { name: 'Prijavi se' }).click();
+    
+    // Očekuj validation poruku za password
+    const form = page.locator('form');
+    await expect(form).toContainText('Lozinka je obavezna.');
+});
