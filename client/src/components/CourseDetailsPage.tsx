@@ -43,6 +43,7 @@ const CourseDetailsPage: React.FC = () => {
 
     const [course, setCourse] = useState<DTOCourseWithLessons>();
     const [loading, setLoading] = useState(true);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [isEditingMode, setIsEditingMode] = useState(false);
 
@@ -54,12 +55,23 @@ const CourseDetailsPage: React.FC = () => {
     const [editingLessonId, setEditingLessonId] = useState<string | null>(null);
     const [lessonForm, setLessonForm] = useState<DTOAddLesson>({ name: "", description: "", durationInMinutes: 0 });
     const [selectedLessonForView, setSelectedLessonForView] = useState<any>(null);
+    const [lessonErrors, setLessonErrors] = useState({
+        name: "",
+        description: "",
+        durationInMinutes: ""
+    });
 
     const [editForm, setEditForm] = useState<EditCourseForm>({
         name: "",
         description: "",
         durationInWeeks: 0,
         difficulty: 0 as DificultyType
+    });
+    const [editErrors, setEditErrors] = useState({
+        name: "",
+        description: "",
+        durationInWeeks: "",
+        difficulty: ""
     });
 
     const { user } = useAuth();
@@ -82,6 +94,7 @@ const CourseDetailsPage: React.FC = () => {
                 setIsEnrolled(enrollStatus.data);
             }
         } catch (error) {
+            setErrorMessage("Greška pri učitavanju kursa. Kurs možda ne postoji ili je došlo do problema na serveru.");
             console.error("Greška pri učitavanju", error);
         } finally {
             setLoading(false);
@@ -99,11 +112,15 @@ const CourseDetailsPage: React.FC = () => {
     // --- LEKCIJE: BACKEND AKCIJE ---
 
     const handleAddLesson = async () => {
+        if (!validateLessonForm()) {
+            return;
+        }
         try {
             await api.post(`/Lessons/addLesson/${course?.id}`, lessonForm);
             alert("Lekcija uspešno dodata!");
             setIsAddingLesson(false);
             setLessonForm({ name: "", description: "", durationInMinutes: 0 });
+            setLessonErrors({ name: "", description: "", durationInMinutes: "" });
             fetchData(); // Osveži listu
         } catch (error: any) {
             alert(error.response?.data || "Greška pri dodavanju lekcije.");
@@ -114,6 +131,10 @@ const CourseDetailsPage: React.FC = () => {
         if (isChangingLessonSameAsOriginal()) {
             setEditingLessonId(null);
             setLessonForm({ name: "", description: "", durationInMinutes: 0 });
+            setLessonErrors({ name: "", description: "", durationInMinutes: "" });
+            return;
+        }
+        if (!validateLessonForm()) {
             return;
         }
         if (!editingLessonId) return;
@@ -122,6 +143,7 @@ const CourseDetailsPage: React.FC = () => {
             alert("Lekcija uspešno ažurirana!");
             setEditingLessonId(null);
             setLessonForm({ name: "", description: "", durationInMinutes: 0 });
+            setLessonErrors({ name: "", description: "", durationInMinutes: "" });
             fetchData();
         } catch (error) {
             alert("Greška pri izmeni lekcije.");
@@ -149,6 +171,7 @@ const CourseDetailsPage: React.FC = () => {
     const startEditingLesson = (lesson: any) => {
         setEditingLessonId(lesson.id);
         setLessonForm({ name: lesson.name, description: lesson.description, durationInMinutes: lesson.durationInMinutes });
+        setLessonErrors({ name: "", description: "", durationInMinutes: "" });
     };
 
     const handleEnroll = async () => { /* ... isti kod kao pre ... */
@@ -177,9 +200,13 @@ const CourseDetailsPage: React.FC = () => {
                 setIsEditingMode(false);
                 return;
             }
+            if (!validateEditForm()) {
+                return;
+            }
             await api.put(`/Course/updateCourse/${id}`, editForm);
             setCourse(prev => prev ? { ...prev, ...editForm } : prev);
             setIsEditingMode(false);
+            setEditErrors({ name: "", description: "", durationInWeeks: "", difficulty: "" });
             alert("Kurs je uspešno ažuriran.");
         } catch (error) { alert("Greška prilikom čuvanja."); }
     };
@@ -190,6 +217,61 @@ const CourseDetailsPage: React.FC = () => {
             editForm.durationInWeeks === course?.durationInWeeks &&
             editForm.difficulty === course?.difficulty;
     }
+
+    const validateLessonForm = () => {
+        const newErrors = {
+            name: "",
+            description: "",
+            durationInMinutes: ""
+        };
+
+        if (!lessonForm.name.trim()) {
+            newErrors.name = "Naziv lekcije je obavezan.";
+        } else if (lessonForm.name.length < 3 || lessonForm.name.length > 50) {
+            newErrors.name = "Naziv lekcije mora biti između 3 i 50 karaktera.";
+        }
+
+        if (!lessonForm.description.trim()) {
+            newErrors.description = "Opis lekcije je obavezan.";
+        } else if (lessonForm.description.length < 20 || lessonForm.description.length > 2000) {
+            newErrors.description = "Opis lekcije mora biti između 20 i 2000 karaktera.";
+        }
+
+        if (lessonForm.durationInMinutes < 1 || lessonForm.durationInMinutes > 600) {
+            newErrors.durationInMinutes = "Trajanje lekcije mora biti između 1 i 600 minuta.";
+        }
+
+        setLessonErrors(newErrors);
+        return Object.values(newErrors).every(value => value === "");
+    };
+
+    const validateEditForm = () => {
+        const newErrors = {
+            name: "",
+            description: "",
+            durationInWeeks: "",
+            difficulty: ""
+        };
+
+        if (!editForm.name.trim()) {
+            newErrors.name = "Naziv kursa je obavezan.";
+        } else if (editForm.name.length < 3 || editForm.name.length > 50) {
+            newErrors.name = "Naziv kursa mora biti između 3 i 50 karaktera.";
+        }
+
+        if (!editForm.description.trim()) {
+            newErrors.description = "Opis kursa je obavezan.";
+        } else if (editForm.description.length < 20 || editForm.description.length > 2000) {
+            newErrors.description = "Opis kursa mora biti između 20 i 2000 karaktera.";
+        }
+
+        if (editForm.durationInWeeks < 1 || editForm.durationInWeeks > 52) {
+            newErrors.durationInWeeks = "Trajanje kursa mora biti između 1 i 52 nedelje.";
+        }
+
+        setEditErrors(newErrors);
+        return Object.values(newErrors).every(value => value === "");
+    };
     const handleDelete = async () => {
         if (!window.confirm("Obrisati kurs?")) return;
         setIsDeleting(true);
@@ -203,6 +285,26 @@ const CourseDetailsPage: React.FC = () => {
         return <div className="flex justify-center items-center min-h-screen bg-[#0b0f1a]"><div className="animate-spin rounded-full h-12 w-12 border-t-2 border-blue-500"></div></div>;
     }
 
+    if (errorMessage) {
+        return (
+            <div className="min-h-screen bg-[#0b0f1a] text-gray-100 flex items-center justify-center px-6">
+                <div className="max-w-xl w-full bg-[#141b2d] border border-white/10 rounded-[2rem] p-10 text-center shadow-2xl">
+                    <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-red-500/10 text-red-400 mx-auto mb-6">
+                        <AlertCircle size={28} />
+                    </div>
+                    <h2 className="text-xl font-black uppercase tracking-widest mb-3">Greška</h2>
+                    <p className="text-gray-400 leading-relaxed mb-8">{errorMessage}</p>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-black uppercase text-xs tracking-widest transition-all"
+                    >
+                        Vrati se nazad
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="min-h-screen bg-[#0b0f1a] text-gray-100 pb-24 font-sans selection:bg-blue-500/30">
             {/* HERO SECTION - (Ostaje isti dizajn kao pre) */}
@@ -213,7 +315,12 @@ const CourseDetailsPage: React.FC = () => {
                     <div className="flex flex-col xl:flex-row xl:items-end justify-between gap-10">
                         <div className="flex-1 space-y-6">
                             {isEditingMode ? (
-                                <input className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-4xl font-black text-white focus:border-blue-500 outline-none" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                                <div className="space-y-2">
+                                    <input className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-4xl font-black text-white focus:border-blue-500 outline-none" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                                    {editErrors.name && (
+                                        <label className="text-red-500 text-sm font-bold ml-1">{editErrors.name}</label>
+                                    )}
+                                </div>
                             ) : (
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
@@ -243,6 +350,9 @@ const CourseDetailsPage: React.FC = () => {
                                                         <input className="course-duration-input w-11 h-10 text-center bg-white/5 border border-white/10 rounded-2xl text-sm font-black text-white focus:border-blue-500 outline-none" type="number" value={editForm.durationInWeeks} onChange={(e) => setEditForm({ ...editForm, durationInWeeks: Number(e.target.value) })} />
                                                         <p className="text-sm font-bold">nedelja</p>
                                                     </div>
+                                                    {editErrors.durationInWeeks && (
+                                                        <label className="text-red-500 text-sm font-bold ml-1">{editErrors.durationInWeeks}</label>
+                                                    )}
                                                 </div>
                                             )
                                         }
@@ -317,7 +427,16 @@ const CourseDetailsPage: React.FC = () => {
                     <section>
                         <h2 className="text-xl font-black text-white flex items-center gap-3 uppercase tracking-[0.2em] mb-8 border-l-4 border-blue-500 pl-4">Pregled Kursa</h2>
                         <div className="bg-white/[0.02] border border-white/5 p-8 md:p-12 rounded-[2.5rem] shadow-2xl">
-                            {isEditingMode ? <textarea className="w-full bg-black/20 border border-white/10 rounded-2xl p-6 text-gray-300 min-h-[300px] outline-none focus:border-blue-500 text-lg font-light leading-relaxed" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} /> : <p className="text-gray-400 leading-loose text-xl font-light">{course?.description}</p>}
+                            {isEditingMode ? (
+                                <div className="space-y-2">
+                                    <textarea className="w-full bg-black/20 border border-white/10 rounded-2xl p-6 text-gray-300 min-h-[300px] outline-none focus:border-blue-500 text-lg font-light leading-relaxed" value={editForm.description} onChange={(e) => setEditForm({ ...editForm, description: e.target.value })} />
+                                    {editErrors.description && (
+                                        <label className="text-red-500 text-sm font-bold ml-1">{editErrors.description}</label>
+                                    )}
+                                </div>
+                            ) : (
+                                <p className="text-gray-400 leading-loose text-xl font-light">{course?.description}</p>
+                            )}
                         </div>
                     </section>
 
@@ -340,19 +459,28 @@ const CourseDetailsPage: React.FC = () => {
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Naslov</label>
                                         <input className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" value={lessonForm.name} onChange={(e) => setLessonForm({ ...lessonForm, name: e.target.value })} />
+                                        {lessonErrors.name && (
+                                            <label className="text-red-500 text-sm font-bold ml-1">{lessonErrors.name}</label>
+                                        )}
                                     </div>
                                     <div className="space-y-2">
                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Trajanje (min)</label>
                                         <input type="number" className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500" value={lessonForm.durationInMinutes} onChange={(e) => setLessonForm({ ...lessonForm, durationInMinutes: parseInt(e.target.value) })} />
+                                        {lessonErrors.durationInMinutes && (
+                                            <label className="text-red-500 text-sm font-bold ml-1">{lessonErrors.durationInMinutes}</label>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Opis lekcije</label>
                                     <textarea className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 min-h-[100px]" value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} />
+                                    {lessonErrors.description && (
+                                        <label className="text-red-500 text-sm font-bold ml-1">{lessonErrors.description}</label>
+                                    )}
                                 </div>
                                 <div className="flex gap-3 justify-end pt-4">
                                     <button
-                                        onClick={() => { setIsAddingLesson(false); setEditingLessonId(null); setLessonForm({ name: "", description: "", durationInMinutes: 0 }) }}
+                                        onClick={() => { setIsAddingLesson(false); setEditingLessonId(null); setLessonForm({ name: "", description: "", durationInMinutes: 0 }); setLessonErrors({ name: "", description: "", durationInMinutes: "" }); }}
                                         className="cancel-lesson-button text-xs font-bold text-gray-500 px-4 py-2">
                                         Odustani
                                     </button>

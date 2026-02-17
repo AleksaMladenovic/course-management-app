@@ -12,7 +12,7 @@ export const setupAuthTest = (options?: { mode?: 'each' | 'all' }) => {
 
   hook(async ({ request }) => {
     execSync('node ./test_scripts/deleteTestUsers.js');
-    await request.post('http://localhost:5196/api/Mongo/DeleteTestDatabase');
+    await request.put('http://localhost:5196/api/Seed/DeleteTestDatabase');
   });
 };
 
