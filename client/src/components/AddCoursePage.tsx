@@ -5,6 +5,8 @@ import type { DificultyType as DificultyTypeEnum } from "../enums/DificultyType"
 import api from "../axios";
 import { getAuth } from "firebase/auth";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../context/AuthContext";
+import RoleType from "../enums/RoleType";
 import {
     ChevronLeft,
     BookPlus,
@@ -13,12 +15,14 @@ import {
     AlignLeft,
     BarChart,
     Save,
-    Loader2
+    Loader2,
+    AlertCircle
 } from "lucide-react";
 
 const AddCoursePage: React.FC  = () => {
     const auth = getAuth();
     const navigate = useNavigate();
+    const { user } = useAuth();
 
     const [name, setName] = useState<string>("");
     const [nameError, setNameError] = useState<string>("");
@@ -92,6 +96,29 @@ const AddCoursePage: React.FC  = () => {
             });
         }
     };
+
+    // Provera da li je korisnik student - studenti ne mogu da kreiraju kurseve
+    if (user?.role === RoleType.Student) {
+        return (
+            <div className="min-h-screen bg-[#0b0f1a] text-gray-100 flex items-center justify-center px-6">
+                <div className="max-w-xl w-full bg-[#141b2d] border border-white/10 rounded-[2rem] p-10 text-center shadow-2xl">
+                    <div className="flex items-center justify-center w-14 h-14 rounded-2xl bg-red-500/10 text-red-400 mx-auto mb-6">
+                        <AlertCircle size={28} />
+                    </div>
+                    <h2 className="text-xl font-black uppercase tracking-widest mb-3">Greška</h2>
+                    <p className="text-gray-400 leading-relaxed mb-8">
+                        Samo autori mogu da kreiraju kurseve. Studenti nemaju pristup ovoj stranici.
+                    </p>
+                    <button
+                        onClick={() => navigate(-1)}
+                        className="inline-flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-black uppercase text-xs tracking-widest transition-all"
+                    >
+                        Vrati se nazad
+                    </button>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <div className="w-full min-h-screen bg-[#0b0f1a] text-gray-100 pb-32 font-sans selection:bg-blue-500/30 overflow-x-hidden">
