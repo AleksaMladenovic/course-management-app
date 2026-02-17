@@ -1,5 +1,7 @@
 import { fillRegisterForm, makeTestEmail } from './helpers';
-import { test, expect } from './setup';
+import { test, expect, setupAuthTest } from './setup';
+
+setupAuthTest();
 
 test('registers student successfully', async ({ page }) => {
     await page.goto('/register');

@@ -39,7 +39,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: nu
             <button
                 onClick={() => onPageChange(Math.max(1, currentPage - 1))}
                 disabled={currentPage === 1}
-                className="h-10 w-10 rounded-xl border border-white/10 bg-white/[0.03] text-gray-400 transition-all hover:border-blue-500/30 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="previous-button h-10 w-10 rounded-xl border border-white/10 bg-white/[0.03] text-gray-400 transition-all hover:border-blue-500/30 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed"
             >
                 &lt;
             </button>
@@ -50,7 +50,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: nu
                     key={index}
                     onClick={() => typeof item === "number" && onPageChange(item)}
                     disabled={typeof item === "string"}
-                    className={`h-10 min-w-[2.5rem] px-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                    className={`page-button h-10 min-w-[2.5rem] px-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
                         currentPage === item
                             ? "bg-blue-500/15 text-blue-300 border border-blue-500/30 shadow-[0_0_12px_rgba(59,130,246,0.35)]"
                             : typeof item === "string"
@@ -66,7 +66,7 @@ const Pagination = ({ currentPage, totalPages, onPageChange }: { currentPage: nu
             <button
                 onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
                 disabled={currentPage === totalPages}
-                className="h-10 w-10 rounded-xl border border-white/10 bg-white/[0.03] text-gray-400 transition-all hover:border-blue-500/30 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed"
+                className="next-button h-10 w-10 rounded-xl border border-white/10 bg-white/[0.03] text-gray-400 transition-all hover:border-blue-500/30 hover:text-blue-400 disabled:opacity-40 disabled:cursor-not-allowed"
             >
                 &gt;
             </button>

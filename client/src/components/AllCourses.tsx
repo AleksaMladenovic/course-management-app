@@ -68,6 +68,7 @@ const AllCourses = () => {
             } as CourseFilterWithPaginationProps;
             console.log("Filter za API poziv:", filter);
             const response: DTOCoursePagedResponse = await (await api.get("Course/getCoursesByFilter", { params: filter })).data;
+            console.log("Odgovor sa API-ja:", response);
             setTotalCourses(response.totalCount);
             setCourses(response.items);
         };
@@ -100,7 +101,7 @@ const AllCourses = () => {
         
         <div className="">
             <AllCoursesFilter onApplyFilter={onApplyFilter} />
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="courses-div grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
                 {courses?.map((course) => (
                     <CourseCard
                         key={course.id}

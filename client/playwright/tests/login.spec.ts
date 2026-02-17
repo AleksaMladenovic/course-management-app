@@ -1,5 +1,7 @@
 import { fillLoginForm, fillRegisterForm, makeTestEmail } from './helpers';
-import { test, expect } from './setup';
+import { test, expect, setupAuthTest } from './setup';
+
+setupAuthTest();
 
 test('login student successfully', async ({ page }) => {
     const email = makeTestEmail('student-login');

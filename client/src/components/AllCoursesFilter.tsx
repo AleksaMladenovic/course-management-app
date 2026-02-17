@@ -20,13 +20,13 @@ export interface AllCoursesFilterProps {
     sort?: SortByOptionsType;
 }
 
-const SortByOptionsType = {
+export const SortByOptionsType = {
     name: 1,
     ascDuration: 2,
     descDuration: 3,
 } as const;
 
-type SortByOptionsType = typeof SortByOptionsType[keyof typeof SortByOptionsType];
+export type SortByOptionsType = typeof SortByOptionsType[keyof typeof SortByOptionsType];
 
 const AllCoursesFilter = ({ onApplyFilter }: { onApplyFilter: (props: AllCoursesFilterProps) => void }) => {
     const [searchByName, setSearchByName] = useState<string>("");
@@ -62,7 +62,7 @@ const AllCoursesFilter = ({ onApplyFilter }: { onApplyFilter: (props: AllCourses
     };
 
     return (
-        <div className="w-full bg-[#141b2d]/50 backdrop-blur-xl border border-white/5 py-4 px-8 rounded-[2.5rem] shadow-2xl mb-12 animate-in fade-in slide-in-from-top-4 duration-700">
+        <div className="w-full bg-[#141b2d]/50 backdrop-blur-xl border border-white/5 py-4 px-8 rounded-[2.5rem] shadow-2xl mb-12 animate-in fade-in slide-in-from-top-4 duration-700 filter-component">
             <div className={"flex items-center justify-between gap-4" + (isCollapsed ? " mb-2" : " mb-8")}>
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-500/10 rounded-lg text-blue-400">
@@ -73,7 +73,7 @@ const AllCoursesFilter = ({ onApplyFilter }: { onApplyFilter: (props: AllCourses
 
                 <button
                     onClick={() => setIsCollapsed((prev) => !prev)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/[0.03] text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:border-white/20 hover:text-white"
+                    className="show-hide-button flex items-center gap-2 px-3 py-2 rounded-xl border border-white/10 bg-white/[0.03] text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] transition-all hover:border-white/20 hover:text-white "
                     aria-expanded={!isCollapsed}
                     aria-label={isCollapsed ? "Prikazi filtere" : "Sakrij filtere"}
                 >
@@ -94,6 +94,7 @@ const AllCoursesFilter = ({ onApplyFilter }: { onApplyFilter: (props: AllCourses
                                 value={searchByName}
                                 onChange={(e) => setSearchByName(e.target.value)}
                                 placeholder="Naziv kursa..."
+                                name="name"
                                 className="w-full bg-black/20 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-gray-600 outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/50 transition-all"
                             />
                         </div>
@@ -106,6 +107,7 @@ const AllCoursesFilter = ({ onApplyFilter }: { onApplyFilter: (props: AllCourses
                                 value={minDuration ?? ""}
                                 onChange={(e) => setMinDuration(e.target.value ? Number(e.target.value) : undefined)}
                                 placeholder="Min. nedelja"
+                                name="minDurationInWeeks"
                                 className="w-full bg-black/20 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-gray-600 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all"
                             />
                         </div>
@@ -118,6 +120,7 @@ const AllCoursesFilter = ({ onApplyFilter }: { onApplyFilter: (props: AllCourses
                                 value={maxDuration ?? ""}
                                 onChange={(e) => setMaxDuration(e.target.value ? Number(e.target.value) : undefined)}
                                 placeholder="Max. nedelja"
+                                name="maxDurationInWeeks"
                                 className="w-full bg-black/20 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-sm text-white placeholder:text-gray-600 outline-none focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/50 transition-all"
                             />
                         </div>
@@ -129,6 +132,7 @@ const AllCoursesFilter = ({ onApplyFilter }: { onApplyFilter: (props: AllCourses
                                 value={difficulty ?? ""}
                                 onChange={(e) => setDifficulty(e.target.value === "" ? undefined : Number(e.target.value) as DificultyTypeEnum)}
                                 className="w-full bg-black/20 border border-white/10 rounded-2xl py-4 pl-12 pr-10 text-sm text-white outline-none focus:border-purple-500/50 transition-all appearance-none cursor-pointer"
+                                name="difficulty"
                             >
                                 <option value="" className="bg-[#141b2d]">Sve težine</option>
                                 <option value={DificultyType.Easy} className="bg-[#141b2d]">{DificultyTypeToString[DificultyType.Easy]}</option>
@@ -145,6 +149,7 @@ const AllCoursesFilter = ({ onApplyFilter }: { onApplyFilter: (props: AllCourses
                                 value={sort ?? ""}
                                 onChange={(e) => setSort(Number(e.target.value) as SortByOptionsType)}
                                 className="w-full bg-black/20 border border-white/10 rounded-2xl py-4 pl-12 pr-10 text-sm text-white outline-none focus:border-blue-500/50 transition-all appearance-none cursor-pointer"
+                                name="sort"
                             >
                                 <option value={SortByOptionsType.name} className="bg-[#141b2d]">Naziv A-Z</option>
                                 <option value={SortByOptionsType.ascDuration} className="bg-[#141b2d]">Trajanje (Rastuće)</option>

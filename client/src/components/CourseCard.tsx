@@ -30,7 +30,7 @@ const CourseCard: React.FC<CourseCardProps> = ({
     return (
         <div 
             onClick={onMoreDetailsClick}
-            className="group relative bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 
+            className="course-card group relative bg-[#1e293b]/40 backdrop-blur-xl border border-white/5 rounded-[2rem] p-8 
                        transition-all duration-500 hover:border-blue-500/30 hover:bg-[#1e293b]/60 
                        hover:shadow-[0_20px_50px_rgba(0,0,0,0.3)] cursor-pointer flex flex-col h-full overflow-hidden"
         >
@@ -41,12 +41,12 @@ const CourseCard: React.FC<CourseCardProps> = ({
             {/* Gornji deo: Težina i Naslov */}
             <div className="relative z-10 mb-6">
                 <div className="flex items-center gap-2 mb-4">
-                    <span className="px-3 py-1 rounded-lg text-[9px] font-black bg-blue-500/10 text-blue-400 
+                    <span className="difficulty px-3 py-1 rounded-lg text-[9px] font-black bg-blue-500/10 text-blue-400 
                                    uppercase tracking-[0.2em] border border-blue-500/20">
                         {DificultyTypeToString[dificulty]}
                     </span>
                 </div>
-                <h2 className="text-2xl font-black text-white uppercase tracking-tighter leading-tight 
+                <h2 className="name text-2xl font-black text-white uppercase tracking-tighter leading-tight 
                                group-hover:text-blue-400 transition-colors duration-300">
                     {name}
                 </h2>
@@ -56,11 +56,11 @@ const CourseCard: React.FC<CourseCardProps> = ({
             <div className="relative z-10 grid grid-cols-2 gap-4 mb-8 pt-6 border-t border-white/5">
                 <div className="flex items-center gap-2 text-gray-400">
                     <Clock size={16} className="text-blue-500/70" />
-                    <span className="text-xs font-bold">{durationInWeeks} nedelja</span>
+                    <span className="duration-in-weeks text-xs font-bold">{durationInWeeks} nedelja</span>
                 </div>
                 <div className="flex items-center gap-2 text-gray-400">
                     <BarChart size={16} className="text-emerald-500/70" />
-                    <span className="text-xs font-bold">{DificultyTypeToString[dificulty]}</span>
+                    <span className="difficulty text-xs font-bold">{DificultyTypeToString[dificulty]}</span>
                 </div>
             </div>
 

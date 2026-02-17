@@ -5,7 +5,11 @@ import { test as base, expect } from '@playwright/test';
 export const test = base;
 export { expect };
 
-test.beforeEach(async ({ request }) => {
-  execSync('node ./test_scripts/deleteTestUsers.js');
-  await request.post('http://localhost:5173/api/Mongo/DeleteTestDatabase');
-});
+// Setup za login/register testove - brise korisnike i bazu pre svakog testa
+export const setupAuthTest = () => {
+  test.beforeEach(async ({ request }) => {
+    execSync('node ./test_scripts/deleteTestUsers.js');
+    await request.post('http://localhost:5196/api/Mongo/DeleteTestDatabase');
+  });
+};
+
