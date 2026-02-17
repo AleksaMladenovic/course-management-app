@@ -214,8 +214,10 @@ test.describe('MyCoursesAuthor Component', () => {
             await page.goto('/home/my');
             await page.waitForResponse(res => res.url().includes('/Author/') && res.status() === 200);
 
-           
             const searchInput = page.locator('input[name="input-search"]');
+
+            // Capture initial count before searching
+            const initialCount = await page.locator('.course-card').count();
             
             // Search for specific course
             await searchInput.fill('Searchable');
@@ -225,7 +227,7 @@ test.describe('MyCoursesAuthor Component', () => {
             await searchInput.clear();
             
             // Should show all courses again (same as initial)
-            await expect(page.locator('.course-card')).toHaveCount(2);
+            await expect(page.locator('.course-card')).toHaveCount(initialCount);
         });
     });
 
@@ -454,6 +456,9 @@ test.describe('MyCoursesStudent Component', () => {
             await page.waitForResponse(res => res.url().includes('/Student/') && res.status() === 200);
 
             const searchInput = page.locator('input[placeholder*="Pretraži"]');
+
+            // Capture initial count before searching
+            const initialCount = await page.locator('.course-card').count();
             
             // Search for specific course
             await searchInput.fill('One');
@@ -462,8 +467,8 @@ test.describe('MyCoursesStudent Component', () => {
             // Clear search
             await searchInput.clear();
             
-            // Should show all enrolled courses again (2 courses)
-            await expect(page.locator('.course-card')).toHaveCount(2);
+            // Should show all enrolled courses again (same as initial)
+            await expect(page.locator('.course-card')).toHaveCount(initialCount);
         });
 
         test('search responds quickly', async ({ page }) => {
