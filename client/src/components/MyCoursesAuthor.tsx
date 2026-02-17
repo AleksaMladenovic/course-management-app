@@ -56,7 +56,7 @@ const MyCoursesAuthor = () => {
             </div>
         ) : (
             /* --- GLAVNI SADRŽAJ --- */
-            <div className="space-y-12">
+            <div className="my-courses-author space-y-12">
                 
                 {/* HEADER SEKCIJA */}
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-8">
@@ -82,6 +82,7 @@ const MyCoursesAuthor = () => {
                                        text-white placeholder:text-gray-600 outline-none 
                                        focus:border-blue-500/40 focus:ring-4 focus:ring-blue-500/5 
                                        transition-all duration-300 shadow-xl text-sm"
+                            name="input-search"
                         />
                     </div>
                 </div>
@@ -92,7 +93,7 @@ const MyCoursesAuthor = () => {
                         <div className="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mb-6 shadow-inner text-gray-600">
                             <BookOpen size={32} />
                         </div>
-                        <h3 className="text-xl font-black text-white uppercase tracking-tight mb-2">Još niste kreirali nijedan kurs</h3>
+                        <h3 className="search-result-text text-xl font-black text-white uppercase tracking-tight mb-2">Još niste kreirali nijedan kurs</h3>
                         <p className="text-gray-500 text-sm max-w-xs mx-auto font-light">
                             Započnite svoje putovanje autora tako što ćete kliknuti na dugme ispod.
                         </p>
@@ -100,14 +101,14 @@ const MyCoursesAuthor = () => {
                 ) : filteredCourses.length === 0 ? (
                     <div className="w-full py-20 text-center">
                         <Search size={40} className="mx-auto text-gray-700 mb-4 opacity-20" />
-                        <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px]">
+                        <p className="search-result-text text-gray-500 font-bold uppercase tracking-widest text-[10px]">
                             Nema rezultata za pretragu "{searchTerm}"
                         </p>
                     </div>
                 ) : null}
 
                 {/* GRID SA KURSEVIMA */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
+                <div className="courses-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-8">
                     <div className="transform transition-all hover:-translate-y-2">
                         <AddCourseCard />
                     </div>

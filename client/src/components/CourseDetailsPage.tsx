@@ -218,9 +218,9 @@ const CourseDetailsPage: React.FC = () => {
                                 <div className="space-y-4">
                                     <div className="flex items-center gap-3">
                                         <span className="px-4 py-1 rounded-lg text-[10px] font-black bg-blue-500 text-white uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20">{course ? DificultyTypeToString[course.difficulty] : ""}</span>
-                                        {isOwner && <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-lg">Vaš Kurs</span>}
+                                        {isOwner && <span className="owner-span text-[10px] font-bold text-gray-500 uppercase tracking-widest bg-white/5 px-3 py-1 rounded-lg">Vaš Kurs</span>}
                                     </div>
-                                    <h1 className="w-full text-left text-5xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">
+                                    <h1 className="course-name w-full text-left text-5xl md:text-6xl font-black text-white tracking-tighter uppercase leading-[0.9]">
                                         {course?.name}
                                     </h1>
                                 </div>
@@ -233,14 +233,14 @@ const CourseDetailsPage: React.FC = () => {
                                         {!isEditingMode ? (
                                             <div>
                                                 <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Trajanje</p>
-                                                <p className="text-sm font-bold">{course?.durationInWeeks} nedelja</p>
+                                                <p className="course-duration-value text-sm font-bold">{course?.durationInWeeks} nedelja</p>
                                             </div>
                                         ) :
                                             (
                                                 <div>
                                                     <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Trajanje</p>
                                                     <div className="flex items-center gap-2">
-                                                        <input className="w-11 h-10 text-center bg-white/5 border border-white/10 rounded-2xl text-sm font-black text-white focus:border-blue-500 outline-none" type="number" value={editForm.durationInWeeks} onChange={(e) => setEditForm({ ...editForm, durationInWeeks: Number(e.target.value) })} />
+                                                        <input className="course-duration-input w-11 h-10 text-center bg-white/5 border border-white/10 rounded-2xl text-sm font-black text-white focus:border-blue-500 outline-none" type="number" value={editForm.durationInWeeks} onChange={(e) => setEditForm({ ...editForm, durationInWeeks: Number(e.target.value) })} />
                                                         <p className="text-sm font-bold">nedelja</p>
                                                     </div>
                                                 </div>
@@ -255,7 +255,7 @@ const CourseDetailsPage: React.FC = () => {
                                         </div>
                                         <div>
                                             <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Lekcije</p>
-                                            <p className="text-sm font-bold">{course?.lessons?.length || 0} lekcija</p>
+                                            <p className="number-of-lessons text-sm font-bold">{course?.lessons?.length || 0} lekcija</p>
                                         </div>
                                     </div>
                                     <div className="flex items-center gap-3">
@@ -264,7 +264,7 @@ const CourseDetailsPage: React.FC = () => {
                                         </div>
                                         <div>
                                             <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Autor</p>
-                                            <p className="text-sm font-bold">{course?.author.name} {course?.author.surname}</p>
+                                            <p className="author-name text-sm font-bold">{course?.author.name} {course?.author.surname}</p>
                                         </div>
                                     </div>
                                     {isEditingMode && (
@@ -274,7 +274,7 @@ const CourseDetailsPage: React.FC = () => {
                                             </div>
                                             <div>
                                                 <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Težina</p>
-                                                <select className="w-full bg-white/5 border border-white/10 rounded-2xl p-3 text-white outline-none focus:border-blue-500" value={editForm.difficulty} onChange={(e) => setEditForm({ ...editForm, difficulty: Number(e.target.value) as DificultyType })}>
+                                                <select className="select-difficulty w-full bg-white/5 border border-white/10 rounded-2xl p-3 text-white outline-none focus:border-blue-500" value={editForm.difficulty} onChange={(e) => setEditForm({ ...editForm, difficulty: Number(e.target.value) as DificultyType })}>
                                                     {Object.entries(DificultyTypeToString).map(([key, value]) => (
                                                         <option key={key} value={key} selected={editForm.difficulty.toString() === key} className="bg-[#141b2d] text-gray-200">
                                                             {value}
@@ -291,13 +291,18 @@ const CourseDetailsPage: React.FC = () => {
                         {isOwner && (
                             <div className="flex gap-4 mb-2">
                                 {isEditingMode ? (
-                                    <><button onClick={handleUpdate} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20"><Save size={18} /> Sačuvaj</button><button onClick={() => setIsEditingMode(false)} className="flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest"><X size={18} /> Odustani</button></>
+                                    <><button onClick={handleUpdate} className="handle-update flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest shadow-xl shadow-blue-500/20"><Save size={18} />
+                                        Sačuvaj
+                                    </button>
+                                        <button onClick={() => setIsEditingMode(false)} className="cancel-update flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest"><X size={18} />
+                                            Odustani
+                                        </button></>
                                 ) : (
                                     <>
-                                        <button onClick={() => setIsEditingMode(true)} className="flex items-center gap-2 bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest shadow-xl shadow-white/10"><Edit3 size={18} />
+                                        <button onClick={() => setIsEditingMode(true)} className="update-button flex items-center gap-2 bg-white text-black hover:bg-gray-200 px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest shadow-xl shadow-white/10"><Edit3 size={18} />
                                             Uredi
                                         </button>
-                                        <button onClick={handleDelete} disabled={isDeleting} className="border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest">
+                                        <button onClick={handleDelete} disabled={isDeleting} className="delete-button border border-red-500/50 text-red-500 hover:bg-red-500 hover:text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-xs tracking-widest">
                                             <Trash2 size={18} />
                                         </button></>
                                 )}
@@ -321,7 +326,7 @@ const CourseDetailsPage: React.FC = () => {
                         <div className="flex items-center justify-between">
                             <h2 className="text-xl font-black text-white uppercase tracking-[0.2em] flex items-center gap-3 border-l-4 border-emerald-500 pl-4">Lekcije {(isOwner || isEnrolled) && <Check size={18} className="text-emerald-500" />}</h2>
                             {isOwner && !isAddingLesson && !editingLessonId && (
-                                <button onClick={() => setIsAddingLesson(true)} className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">
+                                <button onClick={() => setIsAddingLesson(true)} className="add-lesson-button flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg shadow-blue-500/20">
                                     <Plus size={14} /> Dodaj Lekciju
                                 </button>
                             )}
@@ -346,8 +351,14 @@ const CourseDetailsPage: React.FC = () => {
                                     <textarea className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-blue-500 min-h-[100px]" value={lessonForm.description} onChange={(e) => setLessonForm({ ...lessonForm, description: e.target.value })} />
                                 </div>
                                 <div className="flex gap-3 justify-end pt-4">
-                                    <button onClick={() => { setIsAddingLesson(false); setEditingLessonId(null); setLessonForm({ name: "", description: "", durationInMinutes: 0 }) }} className="text-xs font-bold text-gray-500 px-4 py-2">Odustani</button>
-                                    <button onClick={editingLessonId ? handleUpdateLesson : handleAddLesson} className="bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
+                                    <button
+                                        onClick={() => { setIsAddingLesson(false); setEditingLessonId(null); setLessonForm({ name: "", description: "", durationInMinutes: 0 }) }}
+                                        className="cancel-lesson-button text-xs font-bold text-gray-500 px-4 py-2">
+                                        Odustani
+                                    </button>
+                                    <button
+                                        onClick={editingLessonId ? handleUpdateLesson : handleAddLesson}
+                                        className="save-lesson-button bg-blue-600 hover:bg-blue-500 text-white px-6 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition-all">
                                         {editingLessonId ? "Sačuvaj izmene" : "Potvrdi"}
                                     </button>
                                 </div>
@@ -361,14 +372,18 @@ const CourseDetailsPage: React.FC = () => {
                                     <div
                                         key={lesson.id}
                                         onClick={() => setSelectedLessonForView(lesson)}
-                                        className="group flex items-center justify-between bg-white/[0.03] p-6 rounded-3xl border border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all cursor-pointer" // Promenjen cursor i hover
+                                        className="lesson-div group flex items-center justify-between bg-white/[0.03] p-6 rounded-3xl border border-white/5 hover:border-blue-500/30 hover:bg-blue-500/5 transition-all cursor-pointer" // Promenjen cursor i hover
                                     >
                                         <div className="flex items-center gap-5">
                                             <div className="w-12 h-12 bg-blue-500/10 rounded-2xl flex items-center justify-center text-blue-500 group-hover:bg-blue-500 group-hover:text-white transition-all"><PlayCircle size={24} /></div>
-                                            <div><span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em]">Lekcija {index + 1}</span><h3 className="font-bold text-white text-lg">{lesson.name}</h3></div>
+                                            <div>
+                                                <span className="text-[9px] font-black text-blue-500 uppercase tracking-[0.2em]">
+                                                    Lekcija {index + 1}</span>
+                                                <h3 className="lesson-name font-bold text-white text-lg">{lesson.name}</h3>
+                                            </div>
                                         </div>
                                         <div className="flex items-center gap-4">
-                                            <span className="text-xs font-mono text-gray-500">{lesson.durationInMinutes} min</span>
+                                            <span className="lesson-duration text-xs font-mono text-gray-500">{lesson.durationInMinutes} min</span>
                                             {isOwner && (
                                                 <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button
@@ -376,7 +391,7 @@ const CourseDetailsPage: React.FC = () => {
                                                             event.stopPropagation();
                                                             startEditingLesson(lesson);
                                                         }}
-                                                        className="p-2 text-gray-400 hover:text-blue-400 transition-colors"
+                                                        className="edit-lesson-button p-2 text-gray-400 hover:text-blue-400 transition-colors"
                                                     >
                                                         <Pencil size={16} />
                                                     </button>
@@ -385,7 +400,7 @@ const CourseDetailsPage: React.FC = () => {
                                                             event.stopPropagation();
                                                             handleDeleteLesson(lesson.id);
                                                         }}
-                                                        className="p-2 text-gray-400 hover:text-red-500 transition-colors"
+                                                        className="delete-lesson-button p-2 text-gray-400 hover:text-red-500 transition-colors"
                                                     >
                                                         <Trash2 size={16} />
                                                     </button>
@@ -395,11 +410,21 @@ const CourseDetailsPage: React.FC = () => {
                                     </div>
                                 ))}
                                 {(!course?.lessons || course.lessons.length === 0) && (
-                                    <div className="md:col-span-2 text-center py-20 bg-white/[0.01] rounded-[3rem] border-2 border-dashed border-white/5"><BookOpen size={48} className="mx-auto text-gray-700 mb-6" /><h4 className="text-xl font-bold text-gray-500 uppercase tracking-widest">Nema sadržaja</h4></div>
+                                    <div className="md:col-span-2 text-center py-20 bg-white/[0.01] rounded-[3rem] border-2 border-dashed border-white/5">
+                                        <BookOpen size={48} className="mx-auto text-gray-700 mb-6" />
+                                        <h4 className="no-content-label text-xl font-bold text-gray-500 uppercase tracking-widest">Nema sadržaja</h4>
+                                    </div>
                                 )}
                             </div>
                         ) : (
-                            <div className="bg-navy/40 border border-white/5 rounded-[3rem] p-16 text-center"><Lock size={40} className="mx-auto text-white/10 mb-6" /><h3 className="text-xl font-black text-white mb-2 uppercase tracking-widest">Sadržaj je privatan</h3><p className="text-gray-500 font-light max-w-sm mx-auto">Upisom na kurs otključaćete lekcije.</p></div>
+                            <div className="bg-navy/40 border border-white/5 rounded-[3rem] p-16 text-center">
+                                <Lock size={40} className="mx-auto text-white/10 mb-6" />
+                                <h3 className="text-xl font-black text-white mb-2 uppercase tracking-widest">
+                                    Sadržaj je privatan
+                                </h3>
+                                <p className="text-gray-500 font-light max-w-sm mx-auto">
+                                    Upisom na kurs otključaćete lekcije.</p>
+                            </div>
                         )}
                     </section>
                 </div>
@@ -415,9 +440,21 @@ const CourseDetailsPage: React.FC = () => {
                                 <div className="flex justify-between items-center py-4 border-b border-white/5 group/item"><div className="flex items-center gap-3"><Clock size={16} className="text-purple-500" /><span className="text-gray-500 text-[10px] font-black uppercase tracking-widest">Tempo</span></div><span className="text-xs font-bold text-white uppercase">{course?.durationInWeeks} Nedelja</span></div>
                             </div>
                             {isEnrolled ? (
-                                <button onClick={handleUnenroll} disabled={isActionLoading} className="w-full bg-red-500/10 border border-red-500/20 hover:bg-red-500 text-red-500 hover:text-white font-black py-5 rounded-2xl transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-3"><LogOut size={16} /> {isActionLoading ? "Ispis..." : "Ispiši se sa kursa"}</button>
+                                <button
+                                    onClick={handleUnenroll}
+                                    disabled={isActionLoading}
+                                    className="unenroll-button w-full bg-red-500/10 border border-red-500/20 hover:bg-red-500 text-red-500 hover:text-white font-black py-5 rounded-2xl transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-3">
+                                    <LogOut size={16} />
+                                    {isActionLoading ? "Ispis..." : "Ispiši se sa kursa"}
+                                </button>
                             ) : (
-                                <button onClick={handleEnroll} disabled={isActionLoading} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all shadow-2xl shadow-blue-500/20 uppercase tracking-widest text-[10px] flex items-center justify-center gap-3"><Check size={16} /> {isActionLoading ? "Upis..." : "Upis na Kurs"}</button>
+                                <button
+                                    onClick={handleEnroll}
+                                    disabled={isActionLoading}
+                                    className="enroll-button w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all shadow-2xl shadow-blue-500/20 uppercase tracking-widest text-[10px] flex items-center justify-center gap-3">
+                                    <Check size={16} />
+                                    {isActionLoading ? "Upis..." : "Upis na Kurs"}
+                                </button>
                             )}
                         </div>
                     </aside>
@@ -433,14 +470,14 @@ const CourseDetailsPage: React.FC = () => {
                         />
 
                         {/* Sadržaj Modala */}
-                        <div className="relative bg-[#141b2d] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="lesson-modal relative bg-[#141b2d] border border-white/10 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden animate-in zoom-in-95 duration-300">
                             <div className="absolute top-0 left-0 w-full h-2 bg-blue-600" />
 
                             <div className="p-10 space-y-8">
                                 <div className="flex justify-between items-start">
                                     <div>
                                         <span className="text-[10px] font-black text-blue-500 uppercase tracking-[0.3em]">Pregled Modula</span>
-                                        <h2 className="text-3xl font-black text-white mt-2 uppercase tracking-tighter">
+                                        <h2 className="lesson-name text-3xl font-black text-white mt-2 uppercase tracking-tighter">
                                             {selectedLessonForView.name}
                                         </h2>
                                     </div>
@@ -455,20 +492,20 @@ const CourseDetailsPage: React.FC = () => {
                                 <div className="flex items-center gap-6 py-4 border-y border-white/5">
                                     <div className="flex items-center gap-2">
                                         <Clock size={18} className="text-blue-500" />
-                                        <span className="text-sm font-bold text-gray-300">{selectedLessonForView.durationInMinutes} minuta</span>
+                                        <span className="lesson-duration text-sm font-bold text-gray-300">{selectedLessonForView.durationInMinutes} minuta</span>
                                     </div>
                                 </div>
 
                                 <div className="space-y-4">
                                     <h4 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Opis Sadržaja</h4>
-                                    <p className="text-gray-400 leading-loose text-lg font-light italic">
+                                    <p className="lesson-description text-gray-400 leading-loose text-lg font-light italic">
                                         "{selectedLessonForView.description || "Nema dodatnog opisa za ovu lekciju."}"
                                     </p>
                                 </div>
 
                                 <button
                                     onClick={() => setSelectedLessonForView(null)}
-                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all uppercase tracking-widest text-xs"
+                                    className="close-lesson-modal w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-5 rounded-2xl transition-all uppercase tracking-widest text-xs"
                                 >
                                     Zatvori pregled
                                 </button>
