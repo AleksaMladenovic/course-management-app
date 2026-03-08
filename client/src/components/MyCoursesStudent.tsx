@@ -4,6 +4,7 @@ import type { DTOCourseResponse } from "../interfaces/DTOCourseResponse";
 import api from "../axios";
 import { getAuth } from "firebase/auth";
 import CourseCard from "./CourseCard";
+import { useNavigate } from "react-router-dom";
 import { Search, BookOpen, Loader2, Compass } from "lucide-react";
 
 const PAGE_SIZE = 8;
@@ -17,6 +18,7 @@ const MyCoursesStudent = () => {
     const [isLoading, setIsLoading] = useState(true);
     const studentFirebaseUid = getAuth().currentUser?.uid;
     const totalPages = Math.ceil(filteredCourses.length / PAGE_SIZE);
+    const navigate = useNavigate();
 
     useEffect(() => {
         setIsLoading(true);
@@ -95,7 +97,7 @@ const MyCoursesStudent = () => {
                                 Istražite naš katalog i pronađite idealan kurs za vas.
                             </p>
                             <button 
-                                onClick={() => window.location.reload()} // Ili navigacija ka svim kursevima
+                                onClick={() => navigate("/home/all")} // Ili navigacija ka svim kursevima
                                 className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-2xl transition-all font-black uppercase text-[10px] tracking-widest shadow-xl shadow-blue-500/20"
                             >
                                 <Compass size={16} /> Istraži kurseve
